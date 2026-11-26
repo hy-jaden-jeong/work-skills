@@ -26,7 +26,7 @@ flowchart TB
 <!-- 돌린 확인과 결과. AGENTS.md "고친 뒤 확인" 참고. -->
 
 - [ ] `python3 scripts/build_agents.py --check`
-- [ ] 장표 skill을 고쳤으면 `python3 skills/diagram-slides/scripts/render_slide.py --check`
+- [ ] 장표 skill을 고쳤으면 `python3 skills/draw-diagram/scripts/render_slide.py --check`
 
 ## 설치한 사람이 할 일
 

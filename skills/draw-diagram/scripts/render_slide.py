@@ -181,7 +181,7 @@ def render_and_report(source, output, allow_slots=False):
 
 def check():
     """설치 확인. 견본을 모두 구워 보고, 열어 볼 수 있게 PNG 위치를 알려 준다."""
-    out_dir = Path(tempfile.mkdtemp(prefix="diagram-slides-check-"))
+    out_dir = Path(tempfile.mkdtemp(prefix="draw-diagram-check-"))
     templates = sorted(ASSETS.glob("slide-*.html"))
     codes = [render_and_report(t, out_dir / f"{t.stem}.png", allow_slots=True) for t in templates]
     if not templates or any(codes):
