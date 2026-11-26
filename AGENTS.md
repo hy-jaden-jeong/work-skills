@@ -50,7 +50,7 @@ python3 scripts/build_agents.py --check
 장표 skill을 고쳤으면 이 확인도 돌려 종료 코드 0인지 본다.
 
 ```bash
-python3 skills/diagram-slides/scripts/render_slide.py --check
+python3 skills/draw-diagram/scripts/render_slide.py --check
 ```
 
 Claude 데스크톱 앱에서는 Write·Edit 도구로 `.html`을 쓰면 Browser pane이 열린다. 그 앱에서는 `.html` 파일을 Bash(heredoc, `sed`, `python3`)로 고친다.
