@@ -11,13 +11,13 @@
 | skill | 하는 일 |
 | --- | --- |
 | [draw-diagram](skills/draw-diagram/SKILL.md) | 다이어그램을 단독 장표 또는 본문 삽화 PNG로 만든다. 사물을 제 모양(값이 든 표, 겹친 상자)으로 그려 그림만 보고 결론이 보이게 한다. 내용에 맞는 모양(흐름, 묶음, 담는 상자, 표 두 개, 대응, 주고받기, 사건 순서, 시간 막대, 양의 흐름)을 골라 그린다 |
-| [teach-me](skills/teach-me/SKILL.md) | 문서·레포·시스템을 단계별 장표·퀴즈로 가르친다. 그림은 `draw-diagram`에 맡긴다 |
-| [grill-me](skills/grill-me/SKILL.md) | 계획·결정·아이디어를 끝까지 인터뷰한다. 정할 것을 모두 찾아 추천과 함께 묻고, 필요한 만큼 가르치고, 결정 목록을 확정받는다. 코드가 없는 주제는 파일 없이 끝내고, 만들 일이면 문제 맞추기 → 설계 → 인터뷰 → 확정으로 spec 한 파일을 확정한다 |
+| [teach-me](skills/teach-me/SKILL.md) | 문서·레포·시스템을 단계마다 그림과 글로 설명한 뒤 객관식 퀴즈를 낸다. 그림은 `draw-diagram`에 맡긴다 |
+| [grill-me](skills/grill-me/SKILL.md) | 계획·결정·아이디어를 끝까지 인터뷰한다. 결정별 차이를 그림과 글로 설명한 뒤 객관식으로 묻고, 결정 목록을 확정받는다. 코드가 없는 주제는 파일 없이 끝내고, 만들 일이면 문제 맞추기 → 설계 → 인터뷰 → 확정으로 spec 한 파일을 확정한다 |
 | [build-to-spec](skills/build-to-spec/SKILL.md) | 확정된 spec대로 만들고 증명한다. slice 나누기 → 구현(실패하는 test 먼저, 기존 출력은 golden master로 지킴) → 세 방향 검증. spec 파일이 진행 상태라 끊긴 구현을 이어 간다 |
 
 함께 설치할 것이 있다. skill은 다른 skill을 같은 skills 폴더에서 찾는다.
 
-- `teach-me`는 `draw-diagram`를 쓴다.
+- `teach-me`와 `grill-me`는 그림을 그릴 때 `draw-diagram`을 쓴다.
 - `build-to-spec`은 spec이 없으면 `grill-me`로 spec부터 확정하고, 사용자에게 묻는 법과 spec 형식을 `grill-me`에서 읽는다. 둘을 함께 설치한다. 일하는 차례는 `grill-me`(spec 확정) → `build-to-spec`(만들고 증명)이다.
 
 ## 설치
