@@ -985,6 +985,7 @@
 
     // 장표 구조: 제목(결론) · 그림 · 아래 "그래서" 한두 문장
     const inlineDiagram = one('body > .diagram.diagram-only');
+    report.inlineDiagram = Boolean(inlineDiagram);
     report.captureHeight = document.body.offsetHeight;
     if (inlineDiagram && [...document.body.children].some(el => el !== inlineDiagram && !['SCRIPT', 'STYLE'].includes(el.tagName)))
       report.problems.push('본문 삽화는 그림(.diagram.diagram-only) 한 개만 둔다.');

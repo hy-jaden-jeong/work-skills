@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<title></title>
+<img id="shot" src="data:image/png;base64,SCREENSHOT_DATA">
+<script>
+function crop() {
+  const image = document.getElementById("shot");
+  const canvas = document.createElement("canvas");
+  const width = canvas.width = image.naturalWidth;
+  const height = canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(image, 0, 0);
+  const pixels = new Uint32Array(ctx.getImageData(0, 0, width, height).data.buffer);
+  const background = pixels[0]; // 바깥 여백의 배경색
+  let left = width, top = height, right = -1, bottom = -1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (pixels[y * width + x] === background) continue;
+      left = Math.min(x, left);
+      right = Math.max(x, right);
+      top = Math.min(y, top);
+      bottom = y;
+    }
+  }
+  image.remove();
+  if (right < left) return;
+  const margin = 16; // 출력 PNG의 픽셀 단위
+  left = Math.max(0, left - margin);
+  top = Math.max(0, top - margin);
+  right = Math.min(width - 1, right + margin);
+  bottom = Math.min(height - 1, bottom + margin);
+  const result = document.createElement("canvas");
+  result.width = right - left + 1;
+  result.height = bottom - top + 1;
+  result.getContext("2d").drawImage(canvas, -left, -top);
+  document.title = result.toDataURL("image/png");
+}
+window.addEventListener("load", crop);
+</script>

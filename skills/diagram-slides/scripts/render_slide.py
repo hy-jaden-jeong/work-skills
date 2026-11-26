@@ -19,6 +19,7 @@ Mermaid 설정·값 그림(sankey·timebar·cells·tree·quadrant·line·bar) �
 필요한 것: python3, Chrome(또는 Chromium·Edge), Mermaid를 쓰는 장표는 인터넷(CDN).
 Chrome이 기본 위치에 없으면 CHROME_PATH 환경 변수에 실행 파일 경로를 넣는다.
 """
+import base64
 import json
 import os
 import re
@@ -144,10 +145,21 @@ def render(source, output, allow_slots=False):
         # 2차: 찍는다
         height = report["captureHeight"]
         output.parent.mkdir(parents=True, exist_ok=True)
-        run_chrome(chrome, profile, f"--force-device-scale-factor={SCALE}", f"--screenshot={output}", page_file.as_uri(), height=height)
-
-    if png_size(output) != (WIDTH * SCALE, height * SCALE):
-        raise RenderFailed(f"PNG가 {WIDTH * SCALE}x{height * SCALE}으로 찍히지 않았다: {output}")
+        screenshot = Path(work) / "capture.png"
+        run_chrome(chrome, profile, f"--force-device-scale-factor={SCALE}", f"--screenshot={screenshot}", page_file.as_uri(), height=height)
+        if not screenshot.is_file() or png_size(screenshot) != (WIDTH * SCALE, height * SCALE):
+            raise RenderFailed("Chrome이 캔버스 크기의 PNG를 만들지 못했다.")
+        data = screenshot.read_bytes()
+        if report["inlineDiagram"]:
+            crop_page = Path(work) / "crop.html"
+            template = (ASSETS / "crop-inline.html").read_text(encoding="utf-8")
+            crop_page.write_text(template.replace("SCREENSHOT_DATA", base64.b64encode(data).decode("ascii")), encoding="utf-8")
+            dom = run_chrome(chrome, profile, "--dump-dom", crop_page.as_uri())
+            match = re.search(r"<title>data:image/png;base64,([A-Za-z0-9+/=]+)</title>", dom)
+            if not match:
+                raise RenderFailed("본문 삽화에서 그림을 추출하지 못했다.")
+            data = base64.b64decode(match.group(1))
+        output.write_bytes(data)
 
 
 def render_and_report(source, output, allow_slots=False):
