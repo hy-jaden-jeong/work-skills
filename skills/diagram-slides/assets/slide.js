@@ -984,7 +984,12 @@
       report.problems.push(`장표 밖에 떠 있는 글이 있다("${stray[0].textContent.trim().slice(0, 30)}…"). 주석 안에 '-->'를 쓰면 주석이 거기서 끝난다. 주석을 고친다.`);
 
     // 장표 구조: 제목(결론) · 그림 · 아래 "그래서" 한두 문장
-    for (const [sel, what] of [['body>h1', '제목(h1)이'], ['.diagram', '그림 영역(.diagram)이'], ['.panel', '아래 글 칸(.panel)이'], ['.panel .key', '"그래서" 문장(.panel .key)이']])
+    const inlineDiagram = one('body > .diagram.diagram-only');
+    report.captureHeight = document.body.offsetHeight;
+    if (inlineDiagram && [...document.body.children].some(el => el !== inlineDiagram && !['SCRIPT', 'STYLE'].includes(el.tagName)))
+      report.problems.push('본문 삽화는 그림(.diagram.diagram-only) 한 개만 둔다.');
+    const required = inlineDiagram ? [] : [['body>h1', '제목(h1)이'], ['.diagram', '그림 영역(.diagram)이'], ['.panel', '아래 글 칸(.panel)이'], ['.panel .key', '"그래서" 문장(.panel .key)이']];
+    for (const [sel, what] of required)
       if (!one(sel)) report.problems.push(`${what} 없다. 견본의 구조를 그대로 쓴다.`);
 
     // 장면 장표: 설명은 그림이 한다. 아래 글은 결론 한두 문장이고, 읽는 법·용어 칸은 없다

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""장표(HTML)를 16:9 PNG로 굽는다.
+"""장표(HTML)를 단독 장표 또는 본문 삽화 PNG로 굽는다.
 
 사용법
     python3 render_slide.py <장표.html> [<출력.png>]   출력을 생략하면 같은 이름의 .png
@@ -90,11 +90,11 @@ def build_page(fragment, base_dir):
     )
 
 
-def run_chrome(chrome, profile, *args):
+def run_chrome(chrome, profile, *args, height=HEIGHT):
     command = [
         chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-first-run",
         "--use-mock-keychain",  # macOS 키체인을 건드리지 않는다(키체인 대화상자 방지)
-        "--no-default-browser-check", f"--user-data-dir={profile}", f"--window-size={WIDTH},{HEIGHT}",
+        "--no-default-browser-check", f"--user-data-dir={profile}", f"--window-size={WIDTH},{height}",
         "--virtual-time-budget=6000", *args,
     ]
     try:
@@ -142,11 +142,12 @@ def render(source, output, allow_slots=False):
             raise SlideProblems(problems)
 
         # 2차: 찍는다
+        height = report["captureHeight"]
         output.parent.mkdir(parents=True, exist_ok=True)
-        run_chrome(chrome, profile, f"--force-device-scale-factor={SCALE}", f"--screenshot={output}", page_file.as_uri())
+        run_chrome(chrome, profile, f"--force-device-scale-factor={SCALE}", f"--screenshot={output}", page_file.as_uri(), height=height)
 
-    if png_size(output) != (WIDTH * SCALE, HEIGHT * SCALE):
-        raise RenderFailed(f"PNG가 {WIDTH * SCALE}x{HEIGHT * SCALE}으로 찍히지 않았다: {output}")
+    if png_size(output) != (WIDTH * SCALE, height * SCALE):
+        raise RenderFailed(f"PNG가 {WIDTH * SCALE}x{height * SCALE}으로 찍히지 않았다: {output}")
 
 
 def render_and_report(source, output, allow_slots=False):
@@ -161,7 +162,8 @@ def render_and_report(source, output, allow_slots=False):
     except RenderFailed as e:
         print(f"굽지 못했다: {e}", file=sys.stderr)
         return 1
-    print(f"구웠다: {output} ({WIDTH * SCALE}x{HEIGHT * SCALE}, 16:9)")
+    width, height = png_size(Path(output))
+    print(f"구웠다: {output} ({width}x{height})")
     return 0
 
 
