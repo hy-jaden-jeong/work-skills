@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "title": "DE와 FDE의 주된 협업 상대: 배송 지연 주문 (가상)",
+  "scene": "scene.html",
+  "width": 1080,
+  "height": 1350,
+  "fps": 30,
+  "duration": 20,
+  "representativeTime": 18.5,
+  "keyframes": [
+    {"time": 0, "label": "배송 지연 A-104: 예정일과 도착일"},
+    {"time": 2.5, "label": "DE가 같은 주문의 날짜를 데이터 row로 연결"},
+    {"time": 4.2, "label": "날짜 차이 +2일이 지연 값으로 산출"},
+    {"time": 6.8, "label": "같은 데이터가 MLE·DS·분석가의 작업으로 연결"},
+    {"time": 8.1, "label": "주된 협업 상대와 데이터 산출물 유지"},
+    {"time": 9.5, "label": "FDE: 동일한 배송 지연 A-104"},
+    {"time": 12, "label": "실무자와 고객 안내 조치를 연결"},
+    {"time": 14.6, "label": "책임자와 보상 검토 결정을 연결"},
+    {"time": 18.5, "label": "고객 안내 완료와 보상 승인이 주문에 반영"},
+    {"time": 19.9, "label": "업무 실행 결과와 주된 협업 상대 유지"}
+  ],
+  "audio": {
+    "bed": {"frequencies": [110, 165], "gain": 0.018},
+    "events": [
+      {"time": 3.65, "frequency": 550, "duration": 0.15, "gain": 0.06},
+      {"time": 6.2, "frequency": 660, "duration": 0.14, "gain": 0.055},
+      {"time": 12.7, "frequency": 660, "duration": 0.14, "gain": 0.055},
+      {"time": 15.45, "frequency": 660, "duration": 0.14, "gain": 0.055},
+      {"time": 17, "frequency": 770, "duration": 0.22, "gain": 0.065}
+    ]
+  }
+}

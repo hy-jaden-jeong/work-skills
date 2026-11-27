@@ -1,0 +1,94 @@
+<!doctype html><html lang="ko"><meta charset="utf-8">
+<title>같은 요청, 저장된 결과</title>
+<style>
+:root{--bg:#11151c;--panel:#1b222d;--line:#465366;--text:#f4f6f9;--muted:#aab5c3;--blue:#6ba8ff;--orange:#f4aa67}
+html,body{margin:0;width:1080px;height:1350px;overflow:hidden;background:var(--bg)}
+svg{display:block;font-family:"Apple SD Gothic Neo","Noto Sans CJK KR",sans-serif}
+text{fill:var(--text);font-weight:600}.small{font-size:34px;fill:var(--muted);font-weight:500}
+</style>
+<svg id="canvas" xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="가상 요청 A는 6 곱하기 7을 계산해 42를 cache에 저장하고, 두 번째 A는 저장된 42를 응답으로 가져옵니다.">
+<rect width="1080" height="1350" fill="var(--bg)"/>
+<text x="84" y="132" font-size="62" letter-spacing="-2">같은 요청, 저장된 결과</text>
+<text x="87" y="195" class="small">요청 A · 입력 6 × 7 (가상)</text>
+<path d="M84 241H996" stroke="var(--line)" stroke-width="2"/>
+
+<g id="calculation">
+  <rect x="124" y="520" width="832" height="330" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+  <text x="167" y="578" class="small">계산</text>
+  <text id="expression" x="670" y="724" font-size="96" text-anchor="middle">6 × 7</text>
+</g>
+<g id="cache-layer">
+  <rect id="cache-box" x="124" y="905" width="832" height="320" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+  <text x="166" y="961" font-size="42">cache</text>
+  <text x="406" y="961" class="small">저장한 결과</text>
+  <text x="246" y="1008" class="small">key</text><text x="619" y="1008" class="small">value</text>
+  <path d="M164 1027H916" stroke="var(--line)" stroke-width="2"/>
+  <path id="mapping" d="M425 1091H551m-14-12 14 12-14 12" fill="none" stroke="var(--muted)" stroke-width="3"/>
+</g>
+
+<g id="response-box">
+  <rect x="124" y="1020" width="832" height="200" rx="24" fill="var(--panel)" stroke="var(--line)" stroke-width="2"/>
+  <text x="166" y="984" class="small">응답</text>
+  <text id="reuse-note" x="530" y="984" class="small">저장된 42 재사용</text>
+  <path d="M425 1115H551m-14-12 14 12-14 12" fill="none" stroke="var(--muted)" stroke-width="3"/>
+</g>
+
+<text id="first-label" x="220" y="295" class="small">요청 1</text>
+<g id="first-key">
+  <rect width="170" height="120" rx="18" fill="var(--panel)" stroke="var(--blue)" stroke-width="4"/>
+  <text x="85" y="82" font-size="76" text-anchor="middle">A</text>
+</g>
+<text id="first-value" x="670" y="742" font-size="112" text-anchor="middle">42</text>
+
+<text id="second-label" x="220" y="285" class="small">요청 2</text>
+<g id="second-key">
+  <rect width="170" height="120" rx="18" fill="var(--panel)" stroke="var(--orange)" stroke-width="4"/>
+  <text x="85" y="82" font-size="76" text-anchor="middle">A</text>
+</g>
+<text id="second-value" x="670" y="705" font-size="112" text-anchor="middle">42</text>
+</svg>
+<script>
+// One key A and value 42 stay identifiable through calculation, storage, lookup,
+// and copying. Absolute time selects the full state; no playback timer exists.
+const clamp=v=>Math.max(0,Math.min(1,v));
+const ease=v=>{v=clamp(v);return v*v*(3-2*v);};
+const tween=(t,a,b)=>ease((t-a)/(b-a));
+const mix=(a,b,p)=>Math.round(a+(b-a)*p);
+const opacity=(id,value)=>document.getElementById(id).setAttribute('opacity',value);
+window.renderAt=function(seconds){
+  const t=Math.max(0,Math.min(20,Number(seconds)));
+  const enter=tween(t,1.4,3.0),computed=tween(t,3.2,4.2),store=tween(t,5.3,7.0);
+  const zoom=tween(t,9.0,10.5),cacheOffset=-435*zoom;
+  const second=tween(t,10.5,11.2),lookup=tween(t,11.4,13.1),copy=tween(t,14.0,14.4),respond=tween(t,14.4,16.6);
+  const key1Y=mix(mix(330,635,enter),1030,store)+Math.round(cacheOffset);
+  const value1Y=mix(742,1140,store)+Math.round(cacheOffset);
+  const key2Y=mix(mix(310,595,lookup),1050,respond);
+  document.getElementById('first-key').setAttribute('transform',`translate(220 ${key1Y})`);
+  document.getElementById('first-value').setAttribute('y',value1Y);
+  document.getElementById('cache-layer').setAttribute('transform',`translate(0 ${Math.round(cacheOffset)})`);
+  document.getElementById('second-key').setAttribute('transform',`translate(220 ${key2Y})`);
+  document.getElementById('second-value').setAttribute('y',mix(705,1160,respond));
+  document.getElementById('expression').setAttribute('font-size',mix(96,56,computed));
+  document.getElementById('expression').setAttribute('y',mix(724,627,computed));
+  opacity('calculation',tween(t,0.9,1.7)*(1-tween(t,5.1,6.1)));
+  opacity('first-label',1-tween(t,1.4,2.2));
+  opacity('first-key',1);
+  opacity('first-value',computed);
+  opacity('cache-layer',tween(t,5.4,6.3));
+  opacity('mapping',tween(t,6.7,7.1));
+  opacity('second-label',second*(1-tween(t,11.4,12.2)));
+  opacity('second-key',second);
+  opacity('second-value',copy);
+  opacity('response-box',tween(t,14.3,15.0));
+  opacity('reuse-note',tween(t,16.5,17.0));
+  document.getElementById('cache-box').style.stroke=t>=12.6&&t<14.5?'var(--orange)':'var(--line)';
+  document.getElementById('cache-box').style.strokeWidth=t>=12.6&&t<14.5?'4':'2';
+  const phase=t<1.4?'request-1':t<3.2?'calculate-input':t<5.3?'calculate-result':t<7?'store':t<10.5?'cache-hold':t<13.1?'request-2':t<14.4?'cache-hit':t<16.6?'copy-response':'result-hold';
+  return {time:t,phase,request1:{id:'request-1-A',key:'A',expression:'6 × 7'},
+    computedResult:t>=4.2?42:null,cacheEntry:t>=7?{id:'cache-A',key:'A',value:42}:null,
+    request2:t>=10.5?{id:'request-2-A',key:'A'}:null,hit:t>=13.1,
+    response:t>=16.6?{key:'A',value:42,source:'cache-A'}:null,
+    geometry:{key1Y,value1Y,key2Y,cacheOffset:Math.round(cacheOffset)}};
+};
+renderAt(0);
+</script></html>
