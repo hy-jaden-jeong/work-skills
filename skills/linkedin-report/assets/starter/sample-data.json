@@ -1,0 +1,21 @@
+{
+  "status": "가상 data: 실제 조사나 고객 사례가 아님",
+  "purpose": "PDF 편집과 QA를 시험하는 일관된 실행 예제",
+  "period": "가상 관찰 구간 4주",
+  "teamCount": 12,
+  "orderCount": 1200,
+  "exceptionOrderCount": 240,
+  "primaryDelayCause": [
+    {"name": "담당자 확인", "orders": 96},
+    {"name": "정책 확인", "orders": 72},
+    {"name": "data 보정", "orders": 48},
+    {"name": "시스템 재시도", "orders": 24}
+  ],
+  "comparison": [
+    {"group": "담당 기준 명시", "teams": 6, "exceptionOrders": 120, "resolvedWithinDay": 90},
+    {"group": "개별 확인", "teams": 6, "exceptionOrders": 120, "resolvedWithinDay": 54}
+  ],
+  "definitions": {"exception": "표준 주문 흐름에서 벗어나 추가 확인이 필요한 주문", "resolvedWithinDay": "관찰 당일 담당자가 다음 조치를 확정한 주문", "primaryDelayCause": "예외 주문마다 주된 지연 이유를 한 개 배정"},
+  "limitations": ["모든 수치는 제작 검증을 위해 만든 가상 값", "실제 모집단에 일반화하거나 인과 관계를 추론할 수 없음"],
+  "calculations": {"exceptionRate": "240 / 1200 = 20%", "handoffAndPolicyShare": "(96 + 72) / 240 = 70%", "sameDayRateDifference": "90 / 120 - 54 / 120 = 30 percentage points"}
+}
