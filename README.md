@@ -11,7 +11,7 @@
 | skill | 하는 일 |
 | --- | --- |
 | [draw-diagram](skills/draw-diagram/SKILL.md) | 대화 속 개념 설명과 본문 삽화를 그림 자체로 전달하는 실제 그림 크기 PNG로 만든다. 계층·1:N·가지 관계는 tree를 우선하고 질문에 맞는 모양을 골라 필요한 만큼 나누거나 확대한다. 요청·납품 형식에 필요하면 16:9 단독 장표로 만든다 |
-| [linkedin-report](skills/linkedin-report/SKILL.md) | 주장·근거·해석이 이어지는 전문 PDF 리포트를 만든다. LinkedIn 문서 게시용 자료, 기술 분석, 조사 리포트에 쓰며 A4 세로 편집과 모바일 가독성을 함께 확인한다 |
+| [linkedin-cards](skills/linkedin-cards/SKILL.md) | 핵심 메시지를 도표·다이어그램으로 전달하는 LinkedIn 카드뉴스를 만든다. 4:5 PNG에 짧은 제목과 라벨을 두고 자세한 설명은 별도 글로 분리한다 |
 | [notion-writing-style](skills/notion-writing-style/SKILL.md) | Notion 문서의 구성·서식·네이티브 멘션을 정리하고 본문 삽화에 `draw-diagram`을 활용한다 |
 | [teach-me](skills/teach-me/SKILL.md) | 제품 사용법·현재 UI 온보딩은 사용자가 한 동작씩 따라 하고 실제 결과를 확인하는 실습으로 진행한다. 개념·원리·전체 흐름은 객관식 진단·다이어그램·퀴즈로 이해를 확인한다 |
 | [grill-me](skills/grill-me/SKILL.md) | 계획·결정·아이디어를 끝까지 인터뷰한다. 결정별 차이를 그림과 글로 설명한 뒤 객관식으로 묻고, 결정 목록을 확정받는다. 코드가 없는 주제는 파일 없이 끝내고, 만들 일이면 문제 맞추기 → 설계 → 인터뷰 → 확정으로 spec 한 파일을 확정한다 |
@@ -32,10 +32,10 @@ skill 폴더를 agent의 skills 폴더 아래에 symbolic link로 건다. 레포
 
 - `spec-driven` → `build-to-spec`(spec 확정은 `grill-me`로 옮김)
 
-없앤 skill도 있다. `debate-with-fable`(뒤에 `debate-with-top-model`로 이름을 바꿨던 것)은 지웠다. `motion-graphics`도 폐기했다. 기존 색상 팔레트는 `linkedin-report`로 옮겼고 영상 exporter·예제·전용 test는 제거했다. 과거 버전은 Git 이력에서 확인할 수 있다.
+없앤 skill도 있다. `debate-with-fable`(뒤에 `debate-with-top-model`로 이름을 바꿨던 것)은 지웠다. `motion-graphics`도 폐기했다. `linkedin-report`도 4:5 PNG 카드뉴스 제작용 `linkedin-cards`로 바꿨다. 기존 색상 팔레트는 유지하며 영상·A4 PDF exporter와 예제는 활성 스킬에서 제거했다. 과거 버전은 Git 이력에서 확인할 수 있다.
 
 ```bash
-rm -f ~/.claude/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics} ~/.agents/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics}
+rm -f ~/.claude/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics,linkedin-report} ~/.agents/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics,linkedin-report}
 ```
 
 ```bash
@@ -94,7 +94,7 @@ model 이름은 vendor가 자주 바꾼다. 바꿀 때는 `agents/roles/<역할>
 
 - python3, Google Chrome(또는 Chromium·Edge). Chrome이 기본 위치에 없으면 `CHROME_PATH`에 실행 파일 경로를 넣는다
 - 인터넷: 장표는 Mermaid를 CDN에서 불러온다
-- `linkedin-report`의 PDF 생성·검수 도구와 의존성은 [스킬 안내](skills/linkedin-report/SKILL.md)를 따른다. FFmpeg는 필요하지 않다
+- `linkedin-cards`의 PNG 생성·검수 도구와 의존성은 [스킬 안내](skills/linkedin-cards/SKILL.md)를 따른다. PDF·동영상 도구는 기본 제작에 필요하지 않다
 - `grill-me`, `build-to-spec`은 스크립트가 없어 따로 필요한 것이 없다
 - 장표 설치 확인
 
