@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Knowledge Graphs Don’t Require Graph Databases</title>
+<style>
+html,body{margin:0;width:1080px;height:1350px;overflow:hidden;background:#12151b}svg{display:block;font-family:Arial,Helvetica,sans-serif}text{font-weight:600}*{box-sizing:border-box}
+</style>
+<svg id="canvas" xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"></svg>
+<script src="facts.js"></script><script>
+// Storyboard: 0–6.8 graph traversal; 6.8–8.0 same graph lifts;
+// 8.0–10.7 semantic mapping; 10.7–12.8 question/first-hop rows;
+// 12.8–17.9 join values move; 17.9–19.4 Eve merges;
+// 19.4–21.8 answers return; 21.8–23.5 conclusion and short hold.
+// This illustrates query logic, not a physical execution plan or performance.
+const F=window.GRAPH_FACTS,C={bg:'#12151b',paper:'#191e27',line:'#475361',text:'#f0f3f7',muted:'#a2adbb',accent:'#f0cf6b',first:'#7fa7c5',relation:'#83b59e'};
+const POS={Alice:[0,0],Bob:[330,-125],Claire:[330,125],Dan:[690,-230],Eve:[690,0],Fay:[690,230]};
+const clamp=n=>Math.max(0,Math.min(1,n)),ease=n=>{n=clamp(n);return n*n*(3-2*n)},p=(t,a,b)=>ease((t-a)/(b-a)),mix=(a,b,u)=>a+(b-a)*u;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+const text=(id,x,y,s,size=48,color=C.text,anchor='middle',opacity=1)=>`<text id="${id}" x="${x}" y="${y}" data-cy="${y}" data-cx="${x}" text-anchor="${anchor}" font-size="${size}" fill="${color}" opacity="${opacity}">${esc(s)}</text>`;
+const rect=(x,y,w,h,fill=C.paper,stroke=C.line,sw=2,rx=0,opacity=1)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" opacity="${opacity}"/>`;
+const circle=(x,y,r,fill,stroke,sw=4,opacity=1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" opacity="${opacity}"/>`;
+function chip(id,name,x,y,col=C.accent,opacity=1,width=158,height=66){return `<g id="${id}" opacity="${opacity}">${rect(x-width/2,y-height/2,width,height,C.bg,col,4,15)}${text(id+'-text',x,y,name,46,col)}</g>`}
+function route(a,b){const [x,y]=POS[a],[u,v]=POS[b],dx=u-x,dy=v-y,d=Math.hypot(dx,dy),r=103;return [[x+dx/d*r,y+dy/d*r],[u-dx/d*r,v-dy/d*r]]}
+function line(a,b,col=C.line,progress=1,width=7,opacity=1){const [s,e]=route(a,b),end=[mix(s[0],e[0],progress),mix(s[1],e[1],progress)];return `<path d="M${s[0]} ${s[1]}L${end[0]} ${end[1]}" fill="none" stroke="${col}" stroke-width="${width}" stroke-linecap="round" opacity="${opacity}"/>`}
+const adjacent=n=>F.friendships.flatMap(([a,b])=>a===n?[b]:b===n?[a]:[]);
+const firstHop=adjacent(F.query.start),paths=firstHop.flatMap(v=>adjacent(v).filter(n=>!F.query.excludeStart||n!==F.query.start).map(target=>({via:v,target}))),answer=[...new Set(paths.map(q=>q.target))].sort();
+const canvas=document.getElementById('canvas'),metric=document.createElement('canvas').getContext('2d');
+function centerInk(){for(const n of canvas.querySelectorAll('text')){const style=getComputedStyle(n);metric.font=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;const m=metric.measureText(n.textContent),cy=+n.dataset.cy;n.setAttribute('y',cy+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2);if(n.getAttribute('text-anchor')==='middle'){const cx=+n.dataset.cx;n.setAttribute('x',cx+(m.actualBoundingBoxLeft-m.actualBoundingBoxRight)/2+m.width/2)}}}
+window.renderAt=function(seconds){
+ const t=Math.max(0,Math.min(23.5,Number(seconds))),lift=p(t,6.8,7.65),s=mix(1,.74,lift),gx=mix(160,220,lift),gy=mix(735,495,lift),tableShow=p(t,7.15,7.85),queryDrop=p(t,10.7,11.4),queryY=mix(mix(295,205,lift),786,queryDrop),finish=p(t,21.75,22.05),closing=p(t,21.4,21.65);
+ const graphFirst=p(t,.65,1.45),bobSecond=p(t,2.45,3.15),claireSecond=p(t,4,4.7),graphResult=p(t,5.5,6.05),sqlMode=t>=11.4,returned=p(t,19.5,20.65);
+ const graphAnswer=sqlMode?returned:graphResult,graphFocus=t>=11.4&&t<19.5?.43:1;
+ let svg=rect(0,0,1080,1350,C.bg,C.bg,0);
+ // A quiet shared grid belongs to the real table, not a decorative dashboard.
+ const ts=mix(58,46,lift),ty=mix(62,48,lift),gap=mix(65,54,lift);
+ svg+=text('title-1',62,ty,'Knowledge Graphs',ts,C.text,'start')+text('title-2',62,ty+gap,'Don’t Require',ts,C.text,'start')+text('title-3',62,ty+2*gap,'Graph Databases',ts,C.text,'start');
+ svg+=text('example',1016,52,'Fictional example',27,C.muted,'end');
+ svg+=text('question',540,queryY-32*closing,'Alice’s friends of friends?',mix(53,45,queryDrop),C.text,'middle',1-closing);
+ svg+=`<g id="graph" transform="translate(${gx} ${gy}) scale(${s})" opacity="${graphFocus}">`;
+ for(const [a,b] of F.friendships)svg+=line(a,b);
+ for(const [a,b] of F.friendships){let q=a==='Alice'?graphFirst:a==='Bob'?bobSecond:claireSecond; if(sqlMode)q=returned;svg+=line(a,b,a==='Alice'?C.first:C.accent,q,9,q>0?1:0);const [start,end]=route(a,b);if(q>0&&q<1)svg+=circle(mix(start[0],end[0],q),mix(start[1],end[1],q),14,C.accent,C.bg,4)}
+ for(const name of F.people){const [x,y]=POS[name],isAnswer=answer.includes(name),on=name==='Alice'?1:firstHop.includes(name)?(sqlMode?returned:graphFirst):graphAnswer;const col=name==='Alice'?C.text:isAnswer?C.accent:C.first;svg+=circle(x,y,100,C.bg,on>.99?col:C.line,on>.99?6:4);if(isAnswer&&on>0)svg+=circle(x,y,108,C.bg,col,4,on*.65);svg+=text('person-'+name,x,y,name,name==='Claire'?62:68,on>.99?col:C.text)}
+ svg+='</g>';
+ // The two routes to Eve retain their identity. One Person is one answer.
+ const countShow=p(t,5.5,6.05)*(1-p(t,6.8,7.15));svg+=text('graph-answer-count',540,1190,`${answer.length} people`,54,C.accent,'middle',countShow);
+ svg+=text('graph-types',540,1276,'Person  —  FRIENDS_WITH ↔',36,C.muted,'middle',1-lift);
+ // SQL storage is revealed beneath the same graph; all six source rows remain.
+ svg+=`<g id="sql" opacity="${tableShow}">`;
+ svg+=text('table-title',66,849,'Friendships',47,C.relation,'start')+text('sql-label',614,849,'SQL',38,C.relation,'end');
+ svg+=rect(64,895,562,371,C.paper,C.line,2);
+ svg+=rect(64,895,562,64,'#283442',C.line,2);
+ svg+=`<path d="M340 895V1266" stroke="${C.line}" stroke-width="2"/>`;
+ svg+=text('column-source',202,927,'source',43,C.text)+text('column-target',483,927,'target',43,C.text);
+ F.friendships.forEach(([a,b],i)=>{const y=984+i*51;let active=(t>=11.7&&t<13.05&&a==='Alice')||(t>=13.7&&t<15.3&&a==='Bob')||(t>=15.3&&t<17.0&&a==='Claire');if(active)svg+=rect(66,y-25,558,50,'#303b47',C.first,2);if(i)svg+=`<path d="M64 ${y-25}H626" stroke="${C.line}" stroke-width="1.5"/>`;svg+=text('row-'+i+'-source',202,y,a,46,active?C.first:C.text)+text('row-'+i+'-target',483,y,b,46,active?C.accent:C.text)});
+ svg+=text('pair-note',66,1300,'Each pair works both ways.',29,C.muted,'start');svg+='</g>';
+ // Explicit semantic mapping: endpoint names are Persons; a row is FRIENDS_WITH.
+ const mapping=p(t,8.0,8.25)*(1-p(t,10.4,10.7));
+ svg+=text('type-person',175,782,'Person',38,C.first,'middle',mapping);
+ svg+=text('type-relation',772,782,'FRIENDS_WITH ↔',35,C.relation,'middle',mapping);
+ const mp=p(t,8.3,9.0),mpShow=p(t,8.25,8.35)*(1-p(t,9.25,9.55));
+ const mapA=[gx,gy],mapB=[gx+POS.Bob[0]*s,gy+POS.Bob[1]*s];
+ svg+=chip('mapping-Alice','Alice',mix(mapA[0],202,mp),mix(mapA[1],984,mp),C.first,mpShow)+chip('mapping-Bob','Bob',mix(mapB[0],483,mp),mix(mapB[1],984,mp),C.first,mpShow);
+ const relMap=p(t,9.5,10.1),relShow=p(t,9.4,9.55)*(1-p(t,10.35,10.7));
+ svg+=`<path d="M${gx+190*s} ${gy-71*s}Q740 ${mix(580,700,relMap)} 624 ${mix(750,984,relMap)}" stroke="${C.relation}" stroke-width="4" fill="none" stroke-dasharray="8 9" opacity="${relShow}"/>`;
+ svg+=rect(64,959,562,51,'none',C.relation,5,0,relShow*relMap);
+ // Logical query: Alice source rows yield Bob/Claire, values move into matching sources.
+ const queryShow=p(t,11.4,11.7);svg+=text('query-rule',814,864,'≠ Alice',36,C.muted,'middle',queryShow);
+ const firstShow=p(t,12,12.3)*(1-p(t,13.45,13.75));
+ const firstFlight=p(t,11.9,12.6);svg+=chip('first-Bob','Bob',mix(483,807,firstFlight),mix(984,965,firstFlight),C.first,firstShow)+chip('first-Claire','Claire',mix(483,807,firstFlight),mix(1035,1050,firstFlight),C.first,firstShow,172);
+ const bobMove=p(t,13.0,13.75),bobShow=p(t,12.8,13.0)*(1-p(t,14.7,15.0));
+ svg+=chip('join-Bob','Bob',mix(807,202,bobMove),mix(965,1086,bobMove),C.first,bobShow,158,mix(66,48,bobMove));
+ const claireMove=p(t,15.0,15.7),claireShow=p(t,14.85,15.0)*(1-p(t,16.6,16.9));
+ svg+=chip('join-Claire','Claire',mix(807,202,claireMove),mix(1050,1188,claireMove),C.first,claireShow,172,mix(66,48,claireMove));
+ const bobBranch=p(t,13.8,14.2),claireBranch=p(t,15.75,16.15);svg+=chip('join-Bob-copy','Bob',202,mix(1086,1137,bobBranch),C.first,bobShow*bobBranch,158,48)+chip('join-Claire-copy','Claire',202,mix(1188,1239,claireBranch),C.first,claireShow*claireBranch,172,48);
+ const rawAt=[14.1,14.4,16.05,16.35],rawYs=[978,1059,1140,1221],rowIdx=[2,3,4,5],merge=p(t,17.9,18.7),ready=p(t,18.7,19.05);
+ const trayX=807,finalYs={Dan:1006,Eve:1100,Fay:1194};
+ paths.forEach((q,i)=>{const appear=p(t,rawAt[i],rawAt[i]+.75),horizontal=p(t,rawAt[i],rawAt[i]+.4),vertical=p(t,rawAt[i]+.4,rawAt[i]+.75),ry=984+rowIdx[i]*51;let x=mix(483,trayX,horizontal),y=mix(ry,rawYs[i],vertical);if(t>=17.9)y=mix(rawYs[i],finalYs[q.target],merge);let opacity=p(t,rawAt[i],rawAt[i]+.12);if(i===2)opacity*=1-ready;svg+=chip('target-'+i,q.target,x,y,C.accent,opacity,158,mix(48,66,vertical))});
+ svg+=text('result-label',807,919,merge>.95?'3 answers':'Targets',38,C.accent,'middle',p(t,13.8,14.1));
+ svg+=text('distinct',807,1278,'DISTINCT',35,C.accent,'middle',p(t,17.9,18.2));
+ // Three answers return one by one to their exact Person positions. Original table stays.
+ const returnTimes=[19.4,19.85,20.3];answer.forEach((name,i)=>{const v=p(t,returnTimes[i],returnTimes[i]+.7),target=[gx+POS[name][0]*s,gy+POS[name][1]*s],op=t>=returnTimes[i]&&t<returnTimes[i]+.7?1:0;svg+=chip('return-'+name,name,mix(trayX,target[0],v),mix(finalYs[name],target[1],v),C.accent,op)});
+ 
+ svg+=text('conclusion',540,792+22*(1-finish),'Knowledge graph. SQL storage.',47,C.text,'middle',finish);
+ canvas.innerHTML=svg;centerInk();
+ const phase=t<.65?'question':t<2.45?'first-hop':t<4?'bob-second-hop':t<5.5?'claire-second-hop':t<6.8?'graph-distinct':t<8?'same-graph-sql-reveal':t<10.7?'semantic-mapping':t<11.7?'query-to-sql':t<12.8?'alice-rows':t<15?'join-bob':t<17?'join-claire':t<17.9?'four-targets':t<19.4?'distinct-merge':t<21.5?'return-same-answers':'conclusion';
+ return {time:t,phase,people:F.people,personType:F.personType,relation:F.relation,symmetric:F.symmetric,friendships:F.friendships,query:F.query,firstHop,paths,rawTargets:paths.map(q=>q.target),answer,visibleGraphAnswers:graphAnswer>.99?answer:[],sqlAnswer:ready>.99?answer:[],sqlVisible:tableShow>.99,sqlRowsRemain:tableShow>.99,queryLogicIllustration:true,graphTransform:{x:gx,y:gy,scale:s},duplicateMerge:{progress:merge,from:paths.filter(q=>q.target==='Eve').length,to:ready>.99?1:2},activeRegion:t<6.8?'graph':t<8?'transition':t<10.7?'mapping':t<19.4?'sql':t<21.5?'answer-return':'both'};
+};renderAt(0);
+</script></html>

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "title": "Knowledge Graphs Don’t Require Graph Databases",
+  "scene": "scene.html",
+  "width": 1080,
+  "height": 1350,
+  "fps": 30,
+  "duration": 23.5,
+  "representativeTime": 22.4,
+  "assets": [
+    "facts.js"
+  ],
+  "keyframes": [
+    {
+      "time": 0,
+      "label": "The question and entire friend graph"
+    },
+    {
+      "time": 1.8,
+      "label": "Alice to Bob and Claire: first hop"
+    },
+    {
+      "time": 3.45,
+      "label": "Bob reaches Dan and Eve"
+    },
+    {
+      "time": 4.9,
+      "label": "Claire reaches Eve and Fay: two routes to Eve"
+    },
+    {
+      "time": 6.3,
+      "label": "Three distinct people"
+    },
+    {
+      "time": 7.35,
+      "label": "Same graph moves upward while SQL is revealed"
+    },
+    {
+      "time": 8.5,
+      "label": "Person names map to source and target"
+    },
+    {
+      "time": 10.1,
+      "label": "FRIENDS_WITH maps to Friendships rows"
+    },
+    {
+      "time": 11.25,
+      "label": "Question descends to SQL"
+    },
+    {
+      "time": 12.4,
+      "label": "Alice rows give Bob and Claire"
+    },
+    {
+      "time": 13.9,
+      "label": "Bob value moves to matching sources"
+    },
+    {
+      "time": 15.7,
+      "label": "Claire value moves to matching sources"
+    },
+    {
+      "time": 17.6,
+      "label": "Four target values: Dan, Eve, Eve, Fay"
+    },
+    {
+      "time": 18.75,
+      "label": "Two Eve values converge to one"
+    },
+    {
+      "time": 20.2,
+      "label": "SQL answers return to the same graph"
+    },
+    {
+      "time": 22.4,
+      "label": "Knowledge graph. SQL storage."
+    }
+  ]
+}

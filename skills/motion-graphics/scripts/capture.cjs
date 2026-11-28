@@ -10,7 +10,7 @@ const {chromium}=require('playwright');
   const output=path.resolve(process.argv[3]);
   const metadata=JSON.parse(fs.readFileSync(metadataPath,'utf8'));
   const width=metadata.width || 1080,height=metadata.height || 1350,duration=metadata.duration || 20,fps=metadata.fps || 30;
-  const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH,headless:true} : {channel:'chrome',headless:true});
+  const browser=await chromium.launch(process.env.CHROME_PATH ? {executablePath:process.env.CHROME_PATH,headless:true,args:['--mute-audio']} : {channel:'chrome',headless:true,args:['--mute-audio']});
   try {
     const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
     const remoteAssets=[];
@@ -55,7 +55,7 @@ const {chromium}=require('playwright');
     fs.mkdirSync(path.join(output,'repro-check'),{recursive:true});
     fs.mkdirSync(path.join(output,'frames'),{recursive:true});
     await capture(0);
-    const representative=await capture(metadata.representativeTime ?? duration-2);
+    const representative=await capture(metadata.representativeTime ?? Math.max(0,duration-2));
     fs.writeFileSync(path.join(output,'representative.png'),representative.png);
     const references=[];const rasterComparisons=[];const keyframeStates=[];
     for(const [i,key] of metadata.keyframes.entries()) {

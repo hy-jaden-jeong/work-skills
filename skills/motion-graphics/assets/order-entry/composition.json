@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "title": "주문 재입력: 동일한 필드의 전달 방식 (가상)",
+  "title": "Order re-entry: the same fields, a different handoff (fictional)",
   "scene": "scene.html",
   "width": 1080,
   "height": 1350,
@@ -8,29 +8,41 @@
   "duration": 20,
   "representativeTime": 17.5,
   "keyframes": [
-    {"time": 0, "label": "같은 주문서와 빈 접수 화면"},
-    {"time": 2.5, "label": "담당자가 상품 필드를 다시 입력"},
-    {"time": 5.7, "label": "금액과 배송일도 한 필드씩 재입력"},
-    {"time": 7.8, "label": "수기 입력을 마치고 원본 값 대조"},
-    {"time": 9.6, "label": "동일한 주문과 빈 접수 화면으로 비교"},
-    {"time": 11.0, "label": "네 필드가 같은 값으로 함께 전달"},
-    {"time": 13.6, "label": "전달된 필드를 담당자가 원본과 확인"},
-    {"time": 17.5, "label": "담당자 확인 후 A-104 접수"},
-    {"time": 19.9, "label": "확인된 값과 접수 결과 유지"}
-  ],
-  "audio": {
-    "bed": {"frequencies": [110, 165], "gain": 0.018},
-    "events": [
-      {"time": 2.2, "frequency": 440, "duration": 0.07, "gain": 0.055},
-      {"time": 3.35, "frequency": 440, "duration": 0.07, "gain": 0.055},
-      {"time": 4.5, "frequency": 440, "duration": 0.07, "gain": 0.055},
-      {"time": 5.65, "frequency": 440, "duration": 0.07, "gain": 0.055},
-      {"time": 11.8, "frequency": 550, "duration": 0.15, "gain": 0.06},
-      {"time": 13.0, "frequency": 660, "duration": 0.1, "gain": 0.05},
-      {"time": 13.65, "frequency": 660, "duration": 0.1, "gain": 0.05},
-      {"time": 14.3, "frequency": 660, "duration": 0.1, "gain": 0.05},
-      {"time": 14.95, "frequency": 660, "duration": 0.1, "gain": 0.05},
-      {"time": 16.4, "frequency": 770, "duration": 0.22, "gain": 0.07}
-    ]
-  }
+    {
+      "time": 0,
+      "label": "The order and an empty intake form"
+    },
+    {
+      "time": 2.5,
+      "label": "The operator re-enters the product"
+    },
+    {
+      "time": 5.7,
+      "label": "Amount and delivery date are re-entered"
+    },
+    {
+      "time": 7.8,
+      "label": "Compare completed entries with the original"
+    },
+    {
+      "time": 9.6,
+      "label": "The same order and an empty form again"
+    },
+    {
+      "time": 11.0,
+      "label": "Four unchanged fields transfer together"
+    },
+    {
+      "time": 13.6,
+      "label": "The operator checks transferred values"
+    },
+    {
+      "time": 17.5,
+      "label": "Accept A-104 after operator review"
+    },
+    {
+      "time": 19.9,
+      "label": "Keep the checked values and acceptance"
+    }
+  ]
 }
