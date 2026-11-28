@@ -1,0 +1,85 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>같은 요청, 저장된 결과</title>
+<style>
+:root{--bg:#11151c;--panel:#1b222d;--line:#465366;--text:#f4f6f9;--muted:#aab5c3;--blue:#6ba8ff;--orange:#f4aa67}
+html,body{margin:0;width:1080px;height:1350px;overflow:hidden;background:var(--bg)}
+svg{display:block;font-family:"Apple SD Gothic Neo","Noto Sans CJK KR",sans-serif}
+text{fill:var(--text);font-weight:600}.small{font-size:34px;fill:var(--muted);font-weight:500}
+.column{font-size:30px;fill:var(--muted);font-weight:500;text-anchor:middle}
+.box{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.arrow{fill:none;stroke:var(--muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<svg id="canvas" xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+<rect width="1080" height="1350" fill="var(--bg)"/>
+<text x="96" y="132" font-size="62" letter-spacing="-2">같은 요청, 저장된 결과</text>
+<text x="96" y="195" class="small">요청 A · 입력 6 × 7 (가상)</text>
+<path d="M96 241H984" stroke="var(--line)" stroke-width="2"/>
+<g id="calculation">
+ <rect x="96" y="480" width="888" height="306" rx="24" class="box"/>
+ <text x="136" y="532" font-size="38">계산</text>
+ <g id="calc-grid"><text id="calc-key-label" x="300" y="580" class="column">요청</text><path d="M136 612H944" stroke="var(--line)" stroke-width="2"/></g>
+ <text id="expression" x="740" y="698" font-size="96" text-anchor="middle">6 × 7</text>
+</g>
+<g id="cache-layer">
+ <rect id="cache-box" x="96" y="900" width="888" height="306" rx="24" class="box"/>
+ <g id="cache-header"><text x="136" y="952" font-size="38">cache</text><text x="944" y="952" class="small" text-anchor="end">저장한 결과</text>
+ <text id="cache-key-label" x="300" y="1000" class="column">key</text><text id="cache-value-label" x="740" y="1000" class="column">value</text><path d="M136 1032H944" stroke="var(--line)" stroke-width="2"/></g>
+</g>
+<g id="response-panel">
+ <rect x="96" y="880" width="888" height="306" rx="24" class="box"/>
+ <g id="response-header"><text x="136" y="932" font-size="38">응답</text><text id="reuse-note" x="944" y="932" class="small" text-anchor="end">저장된 42 재사용</text>
+ <text id="response-key-label" x="300" y="980" class="column">key</text><text id="response-value-label" x="740" y="980" class="column">value</text><path d="M136 1012H944" stroke="var(--line)" stroke-width="2"/></g>
+</g>
+<text id="first-label" x="300" y="284" class="small" text-anchor="middle">요청 1</text>
+<g id="first-packet">
+ <rect id="first-key-card" x="220" y="-58" width="160" height="116" rx="18" fill="var(--panel)" stroke="var(--blue)" stroke-width="4"/>
+ <text id="first-A" x="300" y="0" font-size="76" text-anchor="middle">A</text>
+ <path id="first-arrow" d="M456 0H584m-14-12 14 12-14 12" class="arrow"/>
+ <text id="first-value" x="740" y="0" font-size="112" text-anchor="middle">42</text>
+</g>
+<text id="second-label" x="300" y="284" class="small" text-anchor="middle">요청 2</text>
+<g id="second-packet">
+ <g id="second-key"><rect x="-80" y="-58" width="160" height="116" rx="18" fill="var(--panel)" stroke="var(--orange)" stroke-width="4"/><text id="second-A" x="0" y="0" font-size="76" text-anchor="middle">A</text></g>
+ <path id="second-arrow" d="M456 0H584m-14-12 14 12-14 12" class="arrow"/>
+ <text id="second-value" x="740" y="0" font-size="112" text-anchor="middle">42</text>
+</g>
+</svg>
+<script>
+// Shared grid: left 96, padding 40, key/value centers 300/740,
+// header center +100, divider +132, row center +218.
+const GRID={key:300,value:740,calcY:480,cacheY:900,cacheFinalY:435,responseY:880,rowOffset:218};
+const clamp=v=>Math.max(0,Math.min(1,v)),ease=v=>{v=clamp(v);return v*v*(3-2*v);};
+const tween=(t,a,b)=>ease((t-a)/(b-a)),mix=(a,b,p)=>Math.round(a+(b-a)*p);
+const opacity=(id,value)=>document.getElementById(id).setAttribute('opacity',value);
+const metricCanvas=document.createElement('canvas'),metricContext=metricCanvas.getContext('2d');
+function inkMetrics(n){const s=getComputedStyle(n);metricContext.font=s.fontWeight+' '+s.fontSize+' '+s.fontFamily;return metricContext.measureText(n.textContent);}
+function centerText(id,cy){const n=document.getElementById(id),m=inkMetrics(n);n.setAttribute('y',Math.round(cy+(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2));}
+function globalBox(id){const n=document.getElementById(id),matrix=n.getCTM();let b=n.getBBox();if(n.tagName==='text'){const m=inkMetrics(n);b={x:b.x,y:Number(n.getAttribute('y'))-m.actualBoundingBoxAscent,width:b.width,height:m.actualBoundingBoxAscent+m.actualBoundingBoxDescent};}const p=new DOMPoint(b.x,b.y).matrixTransform(matrix);return {x:p.x,y:p.y,width:b.width*matrix.a,height:b.height*matrix.d,centerY:p.y+b.height*matrix.d/2};}
+window.renderAt=function(seconds){
+ const t=Math.max(0,Math.min(10.5,Number(seconds)));
+ const enter=tween(t,.35,1.0),lift=tween(t,1.05,1.6),computed=tween(t,1.55,1.8),store=tween(t,2.5,3.25);
+ const camera=tween(t,4.0,4.65),cacheOffset=mix(0,GRID.cacheFinalY-GRID.cacheY,camera);
+ const second=tween(t,4.65,4.9),across=tween(t,5.15,5.5),down=tween(t,5.5,6.15),match=tween(t,6.15,6.5);
+ const copy=tween(t,7.7,8.1),respond=tween(t,8.15,8.9);
+ const calcRow=GRID.calcY+GRID.rowOffset,cacheRow=GRID.cacheY+GRID.rowOffset+cacheOffset,responseRow=GRID.responseY+GRID.rowOffset;
+ const firstRow=mix(mix(370,calcRow,enter),GRID.cacheY+GRID.rowOffset,store)+cacheOffset;
+ const secondRow=mix(mix(370,GRID.cacheFinalY+GRID.rowOffset,down),responseRow,respond),secondX=mix(mix(GRID.key,520,across),GRID.key,match);
+ document.getElementById('first-packet').setAttribute('transform',`translate(0 ${firstRow})`);
+ document.getElementById('cache-layer').setAttribute('transform',`translate(0 ${cacheOffset})`);
+ document.getElementById('second-packet').setAttribute('transform',`translate(0 ${secondRow})`);
+ document.getElementById('second-key').setAttribute('transform',`translate(${secondX} 0)`);
+ document.getElementById('expression').setAttribute('font-size',mix(96,44,lift));centerText('expression',mix(calcRow,GRID.calcY+100,lift));
+ for(const id of ['first-A','first-value','second-A','second-value'])centerText(id,0);
+ centerText('calc-key-label',GRID.calcY+100);for(const id of ['cache-key-label','cache-value-label'])centerText(id,GRID.cacheY+100);for(const id of ['response-key-label','response-value-label'])centerText(id,GRID.responseY+100);
+ opacity('calculation',1-tween(t,2.5,2.85));opacity('calc-grid',tween(t,.9,1.05));opacity('first-label',1-tween(t,.35,.65));
+ opacity('first-value',computed);opacity('first-arrow',tween(t,.95,1.15));
+ opacity('cache-layer',tween(t,2.35,2.65));opacity('cache-header',tween(t,3.05,3.3));
+ opacity('second-label',second*(1-tween(t,5.15,5.5)));opacity('second-packet',second);opacity('second-value',copy);opacity('second-arrow',copy);
+ opacity('response-panel',tween(t,7.9,8.2));opacity('response-header',tween(t,8.8,9.0));opacity('reuse-note',tween(t,8.9,9.3));
+ document.getElementById('cache-box').style.stroke=t>=6.15&&t<8.15?'var(--orange)':'var(--line)';document.getElementById('cache-box').style.strokeWidth=t>=6.15&&t<8.15?'4':'2';
+ const phase=t<.35?'request-1':t<1.8?'calculate':t<2.5?'result-42':t<3.25?'store':t<4.65?'cache-position':t<6.5?'request-2-lookup':t<8.15?'cache-hit-copy':t<8.9?'return-response':'result-hold';
+ return {time:t,phase,request1:{id:'request-1-A',key:'A',expression:'6 × 7'},computedResult:t>=1.8?42:null,
+  cacheEntry:t>=3.25?{id:'cache-A',key:'A',value:42}:null,request2:t>=4.65?{id:'request-2-A',key:'A'}:null,hit:t>=6.5,response:t>=8.9?{key:'A',value:42,source:'cache-A'}:null,
+  geometry:{firstRow,secondRow,secondX,cacheOffset,cacheRow,responseRow},
+  alignment:{firstCard:globalBox('first-key-card').centerY,firstA:globalBox('first-A').centerY,firstValue:globalBox('first-value').centerY,firstArrow:globalBox('first-arrow').centerY,secondA:globalBox('second-A').centerY,secondValue:globalBox('second-value').centerY,secondArrow:globalBox('second-arrow').centerY}};
+};renderAt(0);
+</script></html>

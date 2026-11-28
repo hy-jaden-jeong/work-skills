@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "title": "같은 요청, 저장된 결과",
+  "scene": "scene.html",
+  "width": 1080,
+  "height": 1350,
+  "fps": 30,
+  "duration": 10.5,
+  "representativeTime": 9.6,
+  "keyframes": [
+    {
+      "time": 0,
+      "label": "요청 A"
+    },
+    {
+      "time": 0.68,
+      "label": "계산 구역 진입"
+    },
+    {
+      "time": 1.9,
+      "label": "결과 42"
+    },
+    {
+      "time": 2.87,
+      "label": "A · 42 함께 이동"
+    },
+    {
+      "time": 3.4,
+      "label": "A → 42 저장"
+    },
+    {
+      "time": 4.33,
+      "label": "cache 전체 이동"
+    },
+    {
+      "time": 5.82,
+      "label": "두 번째 A 조회"
+    },
+    {
+      "time": 6.7,
+      "label": "같은 key 확인"
+    },
+    {
+      "time": 8.52,
+      "label": "42 복사 응답"
+    },
+    {
+      "time": 9.6,
+      "label": "저장된 값 유지"
+    }
+  ],
+  "audio": {
+    "bed": {
+      "frequencies": [
+        110,
+        165
+      ],
+      "gain": 0.018
+    },
+    "events": [
+      {
+        "time": 1.8,
+        "frequency": 660,
+        "duration": 0.18,
+        "gain": 0.1
+      },
+      {
+        "time": 3.25,
+        "frequency": 880,
+        "duration": 0.15,
+        "gain": 0.14
+      },
+      {
+        "time": 6.5,
+        "frequency": 1320,
+        "duration": 0.12,
+        "gain": 0.12
+      },
+      {
+        "time": 8.9,
+        "frequency": 760,
+        "duration": 0.15,
+        "gain": 0.1
+      }
+    ]
+  }
+}

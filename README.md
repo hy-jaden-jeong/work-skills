@@ -11,6 +11,7 @@
 | skill | 하는 일 |
 | --- | --- |
 | [draw-diagram](skills/draw-diagram/SKILL.md) | 대화 속 개념 설명과 본문 삽화를 그림 자체로 전달하는 실제 그림 크기 PNG로 만든다. 계층·1:N·가지 관계는 tree를 우선하고 질문에 맞는 모양을 골라 필요한 만큼 나누거나 확대한다. 요청·납품 형식에 필요하면 16:9 단독 장표로 만든다 |
+| [motion-graphics](skills/motion-graphics/SKILL.md) | 대상의 이동·계산·변형으로 기술 원리·업무·개념 차이를 설명하는 LinkedIn용 10~30초 영상을 만든다. 4:5 MP4에 짧은 효과음·배경음을 넣고, 무음에서도 이해되는지 확인한다 |
 | [notion-writing-style](skills/notion-writing-style/SKILL.md) | Notion 문서의 구성·서식·네이티브 멘션을 정리하고 본문 삽화에 `draw-diagram`을 활용한다 |
 | [teach-me](skills/teach-me/SKILL.md) | 학습 목적과 현재 이해를 객관식으로 파악하고, 문서·레포·시스템과 일반 개념의 전체 설명·세부 확대·재설명을 다이어그램 자체로 전달한다. 필요한 만큼 그림을 나누고 실제 퀴즈 답으로 이해를 확인한다 |
 | [grill-me](skills/grill-me/SKILL.md) | 계획·결정·아이디어를 끝까지 인터뷰한다. 결정별 차이를 그림과 글로 설명한 뒤 객관식으로 묻고, 결정 목록을 확정받는다. 코드가 없는 주제는 파일 없이 끝내고, 만들 일이면 문제 맞추기 → 설계 → 인터뷰 → 확정으로 spec 한 파일을 확정한다 |
@@ -31,10 +32,10 @@ skill 폴더를 agent의 skills 폴더 아래에 symbolic link로 건다. 레포
 
 - `spec-driven` → `build-to-spec`(spec 확정은 `grill-me`로 옮김)
 
-없앤 skill도 있다. `motion-graphics`와 `debate-with-fable`(뒤에 `debate-with-top-model`로 이름을 바꿨던 것)은 지웠다.
+없앤 skill도 있다. `debate-with-fable`(뒤에 `debate-with-top-model`로 이름을 바꿨던 것)은 지웠다. `motion-graphics`는 단계별 자막을 보여 주던 HTML 재생기에서 MP4 영상 제작 skill로 개편했다.
 
 ```bash
-rm -f ~/.claude/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics} ~/.agents/skills/{spec-driven,debate-with-fable,debate-with-top-model,motion-graphics}
+rm -f ~/.claude/skills/{spec-driven,debate-with-fable,debate-with-top-model} ~/.agents/skills/{spec-driven,debate-with-fable,debate-with-top-model}
 ```
 
 ```bash
@@ -93,6 +94,7 @@ model 이름은 vendor가 자주 바꾼다. 바꿀 때는 `agents/roles/<역할>
 
 - python3, Google Chrome(또는 Chromium·Edge). Chrome이 기본 위치에 없으면 `CHROME_PATH`에 실행 파일 경로를 넣는다
 - 인터넷: 장표는 Mermaid를 CDN에서 불러온다
+- `motion-graphics`는 Node.js·Playwright·Pillow·FFmpeg도 사용한다. 격리된 실행 환경과 설치 명령은 [스킬의 내보내기 안내](skills/motion-graphics/SKILL.md#만들고-내보내기)를 따른다
 - `grill-me`, `build-to-spec`은 스크립트가 없어 따로 필요한 것이 없다
 - 장표 설치 확인
 
