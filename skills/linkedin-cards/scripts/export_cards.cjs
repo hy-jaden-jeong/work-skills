@@ -50,6 +50,19 @@ async function main() {
         img.addEventListener('load',resolve,{once:true}); img.addEventListener('error',resolve,{once:true});
       })));
       const issues=[], sheets=Array.from(document.querySelectorAll('.card'));
+      // Computed font-size excludes CSS transforms/zoom. Keep HTML text checks
+      // narrow: permit 2D translation, reject unsupported geometry explicitly.
+      const unsupportedTextTransform=style=>{
+        if (style.transform!=='none') {
+          const m=new DOMMatrixReadOnly(style.transform);
+          if (!m.is2D || Math.abs(m.a-1)>1e-6 || Math.abs(m.d-1)>1e-6 || Math.abs(m.b)>1e-6 || Math.abs(m.c)>1e-6) return {property:'transform',value:style.transform};
+        }
+        for (const property of ['scale','rotate','perspective']) if (style[property] && style[property]!=='none') return {property,value:style[property]};
+        const translation=style.translate?.split(/\s+/);
+        if (translation?.length>2 && parseFloat(translation[2])!==0) return {property:'translate',value:style.translate};
+        if (style.zoom && style.zoom!=='normal' && Number(style.zoom)!==1) return {property:'zoom',value:style.zoom};
+        return null;
+      };
       const fontFamily=opt['font-family'], korean=/[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]/;
       const hasKorean=sheets.some(s=>korean.test(s.innerText));
       if (hasKorean) {
@@ -81,6 +94,12 @@ async function main() {
           }
           for (const node of el.childNodes) {
             if (node.nodeType!==Node.TEXT_NODE || !node.textContent.trim()) continue;
+            if (!(el instanceof SVGElement) && el.closest('h1,h2,[data-readable]')) {
+              for (let ancestor=el; ancestor; ancestor=ancestor.parentElement) {
+                const unsupported=unsupportedTextTransform(getComputedStyle(ancestor));
+                if (unsupported) { issue('unsupported-readable-transform',ancestor,{...unsupported,text:node.textContent.trim().slice(0,100)}); break; }
+              }
+            }
             const range=document.createRange(); range.selectNodeContents(node);
             for (const ink of range.getClientRects()) {
               if (!ink.width || !ink.height) continue;

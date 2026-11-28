@@ -42,6 +42,8 @@ charcoal `#141618`, band `#24282C`, cream `#F0ECE3`, steel blue `#8CA0B8`, sage 
 
 HTML의 각 카드에는 `.card`, 핵심 text에는 `data-readable`, 그림에는 `.chart`, 최소 출처에는 `.source`를 쓴다. CSS의 `--safe`와 카드의 `data-safe`를 함께 바꾼다. background/장식만 `data-bleed`로 여백 검사에서 제외할 수 있다. 설명을 숨기는 `overflow:hidden`으로 잘림을 감추지 않는다. SVG 안에 문자 대신 path로 그린 글자를 넣으면 자동 font/크기 검사가 되지 않으므로 시각 검토에서 확인한다.
 
+HTML 핵심 text(`h1`·`h2`·`data-readable` 안의 text)는 text 자신과 조상에 적용된 2D translate만 허용한다. scale·rotate·skew·3D transform·perspective·1이 아닌 zoom은 실제 글자 크기를 computed font-size만으로 확인할 수 없어 `unsupported-readable-transform`으로 실패시킨다. 별도 CSS `scale`·`rotate` 속성도 `none`이 아니면 지원하지 않는다. 위치 이동은 기존 여백 검사로 확인하고, SVG text는 기존 screenCTM 기반 실효 크기 검사를 유지한다.
+
 ## font 준비와 실행
 
 skill 폴더에서 다음을 실행한다. font는 작업 output에만 저장한다. Google Fonts의 Noto Sans KR은 SIL Open Font License 1.1이며 함께 저장한 `OFL.txt`를 확인한다. font를 다른 PDF에서 추출하지 않는다. 아래 font URL이 변경되면 공식 배포 위치를 확인한다. 이미 적법하게 확보한 한글 font가 있으면 CSS의 경로·format·weight를 맞춰 연결해도 된다.
@@ -61,7 +63,7 @@ python3 scripts/qa_png.py "$CARDS_OUT/png" --out "$CARDS_OUT/preview"
 
 font 출처: [Google Fonts Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr). source/CSS, font/license, fact table(원문 재구성 시), 설명 글과 재생성 명령을 output에 보관한다. starter의 가상 data·문구는 실제 제작 시 교체한다.
 
-exporter 옵션: `--browser /path/to/chrome`으로 설치 browser 지정, `--expected-cards N`으로 장수 확인, `--width W --height H`로 사용자 판형 확인, `--min-readable PX`로 `data-readable` text의 실제 출력 글자 크기 기준 조정, `--font-family 'Card Sans'`로 연결한 font 지정, `--expect-text '한글 제목'`으로 실제 핵심 문구 확인(반복 가능). 한글이 있는 card는 지정 font가 해당 text node의 첫 font인지와 한글 sample을 load했는지 검사한다. 이 검사가 모든 glyph의 모양을 보장하지는 않는다.
+exporter 옵션: `--browser /path/to/chrome`으로 설치 browser 지정, `--expected-cards N`으로 장수 확인, `--width W --height H`로 사용자 판형 확인, `--min-readable PX`로 핵심 text 크기 기준 조정(지원하는 HTML은 computed font-size, SVG는 screenCTM 적용), `--font-family 'Card Sans'`로 연결한 font 지정, `--expect-text '한글 제목'`으로 실제 핵심 문구 확인(반복 가능). 한글이 있는 card는 지정 font가 해당 text node의 첫 font인지와 한글 sample을 load했는지 검사한다. 이 검사가 모든 glyph의 모양을 보장하지는 않는다.
 
 `export.json`은 font 상태, text, 실제 크기와 문제를 기록한다. 실패 시 PNG를 만들기 전에 종료하므로 수정 후 다시 실행한다. output 폴더에 기존 `card-NNN.png`가 있으면 먼저 별도 폴더를 쓰거나 명시적으로 정리한다. 이전 세트와 섞지 않는다.
 
