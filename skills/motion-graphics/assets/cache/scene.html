@@ -1,8 +1,8 @@
-<!doctype html><html lang="ko"><meta charset="utf-8"><title>같은 요청, 저장된 결과</title>
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Same request, stored result</title>
 <style>
 :root{--bg:#11151c;--panel:#1b222d;--line:#465366;--text:#f4f6f9;--muted:#aab5c3;--blue:#6ba8ff;--orange:#f4aa67}
 html,body{margin:0;width:1080px;height:1350px;overflow:hidden;background:var(--bg)}
-svg{display:block;font-family:"Apple SD Gothic Neo","Noto Sans CJK KR",sans-serif}
+svg{display:block;font-family:Arial,Helvetica,sans-serif}
 text{fill:var(--text);font-weight:600}.small{font-size:34px;fill:var(--muted);font-weight:500}
 .column{font-size:30px;fill:var(--muted);font-weight:500;text-anchor:middle}
 .box{fill:var(--panel);stroke:var(--line);stroke-width:2}
@@ -10,33 +10,33 @@ text{fill:var(--text);font-weight:600}.small{font-size:34px;fill:var(--muted);fo
 </style>
 <svg id="canvas" xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
 <rect width="1080" height="1350" fill="var(--bg)"/>
-<text x="96" y="132" font-size="62" letter-spacing="-2">같은 요청, 저장된 결과</text>
-<text x="96" y="195" class="small">요청 A · 입력 6 × 7 (가상)</text>
+<text x="96" y="132" font-size="62" letter-spacing="-2">Same request, stored result</text>
+<text x="96" y="195" class="small">Request A · input 6 × 7 (fictional)</text>
 <path d="M96 241H984" stroke="var(--line)" stroke-width="2"/>
 <g id="calculation">
  <rect x="96" y="480" width="888" height="306" rx="24" class="box"/>
- <text x="136" y="532" font-size="38">계산</text>
- <g id="calc-grid"><text id="calc-key-label" x="300" y="580" class="column">요청</text><path d="M136 612H944" stroke="var(--line)" stroke-width="2"/></g>
+ <text x="408" y="532" font-size="38">Compute</text>
+ <g id="calc-grid"><text id="calc-key-label" x="300" y="580" class="column">Request</text><path d="M136 612H944" stroke="var(--line)" stroke-width="2"/></g>
  <text id="expression" x="740" y="698" font-size="96" text-anchor="middle">6 × 7</text>
 </g>
 <g id="cache-layer">
  <rect id="cache-box" x="96" y="900" width="888" height="306" rx="24" class="box"/>
- <g id="cache-header"><text x="136" y="952" font-size="38">cache</text><text x="944" y="952" class="small" text-anchor="end">저장한 결과</text>
+ <g id="cache-header"><text x="136" y="952" font-size="38">cache</text><text x="944" y="952" class="small" text-anchor="end">Stored result</text>
  <text id="cache-key-label" x="300" y="1000" class="column">key</text><text id="cache-value-label" x="740" y="1000" class="column">value</text><path d="M136 1032H944" stroke="var(--line)" stroke-width="2"/></g>
 </g>
 <g id="response-panel">
  <rect x="96" y="880" width="888" height="306" rx="24" class="box"/>
- <g id="response-header"><text x="136" y="932" font-size="38">응답</text><text id="reuse-note" x="944" y="932" class="small" text-anchor="end">저장된 42 재사용</text>
+ <g id="response-header"><text x="136" y="932" font-size="38">Response</text><text id="reuse-note" x="944" y="932" class="small" text-anchor="end">Reuse stored 42</text>
  <text id="response-key-label" x="300" y="980" class="column">key</text><text id="response-value-label" x="740" y="980" class="column">value</text><path d="M136 1012H944" stroke="var(--line)" stroke-width="2"/></g>
 </g>
-<text id="first-label" x="300" y="284" class="small" text-anchor="middle">요청 1</text>
+<text id="first-label" x="300" y="284" class="small" text-anchor="middle">Request 1</text>
 <g id="first-packet">
  <rect id="first-key-card" x="220" y="-58" width="160" height="116" rx="18" fill="var(--panel)" stroke="var(--blue)" stroke-width="4"/>
  <text id="first-A" x="300" y="0" font-size="76" text-anchor="middle">A</text>
  <path id="first-arrow" d="M456 0H584m-14-12 14 12-14 12" class="arrow"/>
  <text id="first-value" x="740" y="0" font-size="112" text-anchor="middle">42</text>
 </g>
-<text id="second-label" x="300" y="284" class="small" text-anchor="middle">요청 2</text>
+<text id="second-label" x="300" y="284" class="small" text-anchor="middle">Request 2</text>
 <g id="second-packet">
  <g id="second-key"><rect x="-80" y="-58" width="160" height="116" rx="18" fill="var(--panel)" stroke="var(--orange)" stroke-width="4"/><text id="second-A" x="0" y="0" font-size="76" text-anchor="middle">A</text></g>
  <path id="second-arrow" d="M456 0H584m-14-12 14 12-14 12" class="arrow"/>

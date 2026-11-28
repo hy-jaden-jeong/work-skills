@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="ko"><meta charset="utf-8"><title>주문 재입력 (가상)</title>
+<html lang="en"><meta charset="utf-8"><title>Order re-entry (fictional)</title>
 <style>
 html,body{margin:0;width:1080px;height:1350px;background:#11151b;overflow:hidden}
-svg{display:block;width:1080px;height:1350px;font-family:'Apple SD Gothic Neo','Noto Sans CJK KR',sans-serif}
+svg{display:block;width:1080px;height:1350px;font-family:Arial,Helvetica,sans-serif}
 text{font-weight:500}
 </style>
-<svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" role="img" aria-label="동일한 주문의 수기 재입력과 자동 전달 후 담당자 확인"></svg>
+<svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" role="img" aria-label="Manual re-entry versus automatic transfer and operator review for the same order"></svg>
 <script>
-/* 시각 storyboard: 동일한 A-104 주문서와 접수 form의 좌표/값을 유지한다.
-   0–8.5s: 실제 키보드 모양이 움직이고 각 field를 다시 입력한 뒤 원본 대조.
-   9–12s: 동일한 field 네 개가 묶여 접수 form으로 이동. 원본은 남는다.
-   12–16.4s: 담당자가 원본과 전달값을 하나씩 대조해 확인.
-   16.4–20s: 확인된 값/담당자/접수 결과 유지. 연출 시간은 업무 성능 수치가 아니다. */
+/* 시각 storyboard: 동일한 A-104 Order와 접수 form의 좌표/값을 유지한다.
+   0–8.5s: 실제 키보드 모양이 움직이고 각 field를 다시 입력한 뒤 Original 대조.
+   9–12s: 동일한 field 네 개가 묶여 접수 form으로 이동. Original은 남는다.
+   12–16.4s: Operator가 Original과 전달값을 하나씩 대조해 확인.
+   16.4–20s: 확인된 값/Operator/접수 결과 유지. 연출 시간은 업무 성능 수치가 아니다. */
 const BG='#11151b', PANEL='#1b222d', LINE='#455063', BLUE='#8fb6ff', WARM='#dbac83';
-const order={id:'A-104',product:'머그컵',quantity:'2',amount:'24,000원',delivery:'12/02'};
-const fields=[['product','상품',order.product],['quantity','수량',order.quantity],['amount','금액',order.amount],['delivery','배송일',order.delivery]];
+const order={id:'A-104',product:'Mug',quantity:'2',amount:'24,000 KRW',delivery:'12/02'};
+const fields=[['product','Product',order.product],['quantity','Quantity',order.quantity],['amount','Amount',order.amount],['delivery','Delivery date',order.delivery]];
 const clamp=v=>Math.max(0,Math.min(1,v)), ease=v=>{v=clamp(v);return v*v*(3-2*v)}, lerp=(a,b,p)=>a+(b-a)*p;
 const text=(x,y,s,size=36,fill='#edf1f7',anchor='start')=>`<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" text-anchor="${anchor}">${s}</text>`;
 const box=(x,y,w,h,fill=PANEL,stroke=LINE,r=18)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
@@ -28,13 +28,13 @@ function renderAt(time){
   const progress=fields.map((_,i)=>auto?(transferred?1:0):clamp((local-(1.8+i*1.15))/.85));
   const checked=fields.map((_,i)=>auto?local>=4+i*.65:local>=7+i*.25);
   const received=auto&&local>=7.4;
-  let svg=box(0,0,1080,1350,BG,BG,0)+text(80,110,'주문 재입력',54)+text(80,166,'같은 주문 A-104 · (가상)',34,'#aeb9c8');
-  svg+=`<g opacity="${fade}">`+box(80,213,920,64,'#202a38',LINE,16)+text(108,258,auto?'자동 전달 + 담당자 확인':'수기 재입력',40,auto?BLUE:WARM);
+  let svg=box(0,0,1080,1350,BG,BG,0)+text(80,110,'Order re-entry',54)+text(80,166,'Same order A-104 · (fictional)',34,'#aeb9c8');
+  svg+=`<g opacity="${fade}">`+box(80,213,920,64,'#202a38',LINE,16)+text(108,258,auto?'Auto transfer + operator review':'Manual re-entry',40,auto?BLUE:WARM);
   // Receipt shape is distinct from the browser-like receiving form.
   const receiptEdge=Array.from({length:26},(_,i)=>`l-15 ${i%2?-12:12}`).join('');
   svg+=`<path d="M80 307H470V881${receiptEdge}V307Z" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>`;
-  svg+=text(108,356,'주문서',38)+text(108,398,order.id,34,'#aeb9c8');
-  svg+=box(610,307,390,600)+`<path d="M610 373H1000" stroke="${LINE}" stroke-width="2"/>`+text(638,354,'접수 화면',38);
+  svg+=text(108,356,'Order',38)+text(108,398,order.id,34,'#aeb9c8');
+  svg+=box(610,307,390,600)+`<path d="M610 373H1000" stroke="${LINE}" stroke-width="2"/>`+text(638,354,'Intake form',38);
   for(let i=0;i<3;i++)svg+=`<circle cx="${922+i*20}" cy="337" r="5" fill="${LINE}"/>`;
   const activeManual=progress.findIndex(p=>p>0&&p<1);
   fields.forEach(([id,name,value],i)=>{
@@ -48,10 +48,10 @@ function renderAt(time){
     if(auto&&local>.8&&local<2.8){const p=ease((local-.8)/2),x=lerp(282,799,p);svg+=box(x-150,y-24,300,66,'#293b53',BLUE,10)+text(x,y+20,value,40,'#edf1f7','middle');}
   });
   if(auto&&local>.8&&local<2.8){const p=ease((local-.8)/2),x=lerp(282,799,p);svg+=`<path d="M${x-166} 420v440M${x+166} 420v440" stroke="${BLUE}" stroke-width="4"/>`;}
-  if(!auto){svg+=person(790,1070,'담당자',activeManual!==-1)+keyboard(555,1000,activeManual===-1?0:progress[activeManual]);svg+=`<path d="M748 1078L710 1039" fill="none" stroke="${activeManual!==-1?WARM:LINE}" stroke-width="4"/>`;svg+=text(275,1015,'원본',34,'#aeb9c8','middle');if(local>=7)svg+=text(790,1237,'값 대조',36,WARM,'middle');}
-  else{svg+=person(800,1080,'담당자',local>=3.5)+`<path d="M800 1023V954" stroke="${local>=3.5?BLUE:LINE}" stroke-width="4"/>`;svg+=text(275,1015,'원본 유지',34,'#aeb9c8','middle');if(local>=3.5)svg+=box(610,941,390,62,'#1b283c',BLUE,14)+text(805,984,received?'확인됨':'값 확인',36,BLUE,'middle');}
+  if(!auto){svg+=person(790,1070,'Operator',activeManual!==-1)+keyboard(555,1000,activeManual===-1?0:progress[activeManual]);svg+=`<path d="M748 1078L710 1039" fill="none" stroke="${activeManual!==-1?WARM:LINE}" stroke-width="4"/>`;svg+=text(275,1015,'Original',34,'#aeb9c8','middle');if(local>=7)svg+=text(790,1237,'Compare values',36,WARM,'middle');}
+  else{svg+=person(800,1080,'Operator',local>=3.5)+`<path d="M800 1023V954" stroke="${local>=3.5?BLUE:LINE}" stroke-width="4"/>`;svg+=text(275,1015,'Original retained',34,'#aeb9c8','middle');if(local>=3.5)svg+=box(610,941,390,62,'#1b283c',BLUE,14)+text(805,984,received?'Reviewed':'Check values',36,BLUE,'middle');}
   svg+='</g>';
-  if(received){const p=ease((local-7.4)/.55);svg+=`<g opacity="${p}">`+box(80,1195,920,83,'#213148',BLUE,18)+check(132,1237)+text(178,1251,'A-104 · 접수됨',43)+`</g>`;}
+  if(received){const p=ease((local-7.4)/.55);svg+=`<g opacity="${p}">`+box(80,1195,920,83,'#213148',BLUE,18)+check(132,1237)+text(178,1251,'A-104 · Accepted',43)+`</g>`;}
   document.getElementById('canvas').innerHTML=svg;
   return {phase:auto?(received?'received':transferred?'confirming':'transferring'):'manual-entry',objectIDs:['order:A-104','receipt:A-104','form:A-104','operator'],values:{order,source:fields.map(f=>f[2]),destination:fields.map((f,i)=>auto?(transferred?f[2]:''):f[2].slice(0,Math.floor(f[2].length*progress[i])))},checked,received};
 }

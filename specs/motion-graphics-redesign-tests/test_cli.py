@@ -11,6 +11,65 @@ SCRIPT = Path(__file__).resolve().parents[2] / "skills/motion-graphics/scripts/r
 
 
 class CompositionCLI(unittest.TestCase):
+    def test_pace_audit_reports_still_candidates_without_editing_frames(self):
+        from PIL import Image
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for i, color in enumerate(["black", "black", "black", "white", "white", "white"]):
+                Image.new("RGB", (44, 55), color).save(root / f"{i:04}.png")
+            before = {p.name: p.read_bytes() for p in root.glob("*.png")}
+            result = subprocess.run([sys.executable, str(SCRIPT.with_name("audit_motion.py")), str(root),
+                "--fps", "10", "--min-still", "0.15"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            audit = json.loads(result.stdout)
+            self.assertEqual([(s["start"], s["end"]) for s in audit["stillCandidates"]], [(0.0, 0.2), (0.3, 0.5)])
+            self.assertEqual([(c["time"], c["changedRatio"]) for c in audit["changes"]], [(0.3, 1.0)])
+            self.assertEqual(before, {p.name: p.read_bytes() for p in root.glob("*.png")})
+            self.assertFalse(audit["automaticallyCut"])
+
+    def test_pace_audit_orders_five_digit_frame_names_numerically(self):
+        from PIL import Image
+        for prefix in ["", "frame-"]:
+            with self.subTest(prefix=prefix), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                for number, color in [(9998, "black"), (9999, "black"),
+                                      (10000, "white"), (10001, "black")]:
+                    Image.new("RGB", (1, 1), color).save(root / f"{prefix}{number:04}.png")
+                result = subprocess.run([sys.executable, str(SCRIPT.with_name("audit_motion.py")), str(root),
+                    "--fps", "30", "--step", str(1 / 30)], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                audit = json.loads(result.stdout)
+                self.assertEqual([c["time"] for c in audit["changes"]], [0.066667, 0.1])
+
+    @unittest.skipUnless(os.environ.get("MOTION_RENDER_SMOKE"), "Set MOTION_RENDER_SMOKE=1 for short Chrome/ffmpeg export")
+    def test_short_export_default_representative_matches_source_regeneration(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "scene.html").write_text('''<!doctype html><style>html,body{margin:0}</style><svg id="canvas" width="40" height="50"><rect id="panel" width="40" height="50"/></svg><script>window.renderAt=t=>{document.getElementById('panel').setAttribute('fill',t===0?'red':'blue');return {t};};renderAt(0);</script>''')
+            metadata = root / "composition.json"
+            metadata.write_text(json.dumps({"version": 1, "title": "Short default representative", "scene": "scene.html",
+                "width": 40, "height": 50, "duration": 1, "fps": 10,
+                "keyframes": [{"time": 0, "label": "Opening"}]}))
+            output, regenerated = root / "exported", root / "regenerated"
+            result = subprocess.run([sys.executable, str(SCRIPT), str(metadata), "--output", str(output)],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            first = json.loads((output / "validation.json").read_text())
+            self.assertEqual(first["representativeTime"], 0)
+            self.assertEqual(first["capture"]["representativeState"], {"t": 0})
+            environment = dict(os.environ)
+            environment.setdefault("NODE_PATH", str(SCRIPT.parent.parent / "node_modules"))
+            result = subprocess.run([sys.executable, str(output / "source/scripts/render_motion.py"),
+                str(output / "source/composition.json"), "--output", str(regenerated)],
+                capture_output=True, text=True, cwd=output / "source", env=environment)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            second = json.loads((regenerated / "validation.json").read_text())
+            self.assertEqual(second["capture"]["representativeState"], {"t": 0})
+            self.assertEqual(first["representativeSha256"], second["representativeSha256"])
+            self.assertTrue(first["fullDecodePassed"] and second["fullDecodePassed"])
+            self.assertEqual(first["audioStreamCount"], 0)
+            self.assertEqual(second["audioStreamCount"], 0)
+
     def test_other_aspect_requires_explicit_override(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -76,6 +135,9 @@ class CompositionCLI(unittest.TestCase):
                 "keyframes": [{"time": 0, "label": "A"}, {"time": 8, "label": "42"}],
                 "audio": {"bed": {"frequencies": [110], "gain": 0.02}, "events": [{"time": 3, "frequency": 880, "duration": 0.1, "gain": 0.1}]}}))
             output = root / "exported"
+            output.mkdir()
+            (output / "audio.wav").write_bytes(b"old generated audio")
+            (output / "recording.wav").write_bytes(b"user recording")
             result = subprocess.run([sys.executable, str(SCRIPT), str(metadata), "--output", str(output), "--allow-other-aspect"], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             evidence = json.loads((output / "validation.json").read_text())
@@ -83,14 +145,17 @@ class CompositionCLI(unittest.TestCase):
             self.assertEqual(evidence["video"]["pixelFormat"], "yuv420p")
             self.assertEqual(evidence["video"]["dimensions"], [200, 200])
             self.assertEqual(evidence["video"]["fps"], 10)
-            self.assertEqual(evidence["audio"]["codec"], "aac")
+            probe = subprocess.run([evidence["encodeCommand"][0], "-hide_banner", "-i", str(output / "video.mp4")], capture_output=True, text=True)
+            self.assertNotIn("Audio:", probe.stderr)
+            self.assertEqual(evidence["audioStreamCount"], 0)
+            self.assertFalse((output / "audio.wav").exists())
+            self.assertEqual((output / "recording.wav").read_bytes(), b"user recording")
             self.assertAlmostEqual(evidence["duration"], 10, places=1)
             self.assertTrue(evidence["fullDecodePassed"])
             self.assertEqual(evidence["capture"]["representativeState"], {"id": "A", "value": 42})
             self.assertTrue(evidence["capture"]["stateCallOrderIndependent"])
-            self.assertGreater(evidence["audio"]["sourcePeak"], 0)
-            self.assertLess(evidence["audio"]["sourcePeak"], 0.8)
             self.assertTrue((output / "source/composition.json").is_file())
+            self.assertNotIn("audio", json.loads((output / "source/composition.json").read_text()))
             self.assertTrue((output / "source/style.css").is_file())
             self.assertIn("--allow-other-aspect", (output / "source/README.md").read_text())
             regenerated = root / "regenerated"
@@ -107,19 +172,21 @@ class CompositionCLI(unittest.TestCase):
                 self.assertEqual(second.convert("RGB").getpixel((10, 10)), (255, 0, 0))
                 self.assertEqual(first.tobytes(), second.tobytes())
 
-    def test_rejects_duration_outside_supported_publish_range(self):
+    def test_accepts_minutes_and_rejects_nonpositive_duration(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             (root / "scene.html").write_text("<script>window.renderAt=t=>({t})</script>")
-            for duration in [9, 31]:
+            for duration, error in [(0, "positive finite"), (-1, "positive finite"),
+                                    (0.001, "at least one frame"), (1, None), (120, None)]:
                 with self.subTest(duration=duration):
                     metadata = root / "composition.json"
-                    metadata.write_text(json.dumps({"version": 1, "title": "Invalid", "scene": "scene.html",
+                    metadata.write_text(json.dumps({"version": 1, "title": "Duration validation", "scene": "scene.html",
                         "width": 1080, "height": 1350, "duration": duration, "fps": 30,
-                        "representativeTime": 5, "keyframes": [{"time": 0, "label": "start"}], "audio": {}}))
+                        "keyframes": [{"time": 0, "label": "start"}], "audio": {}}))
                     result = subprocess.run([sys.executable, str(SCRIPT), str(metadata), "--check-only"], capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 2, result.stdout)
-                    self.assertIn("10~30", result.stderr)
+                    self.assertEqual(result.returncode, 2 if error else 0, result.stdout + result.stderr)
+                    if error:
+                        self.assertIn(error, result.stderr)
 
     def test_rejects_non_four_by_five_before_rendering(self):
         with tempfile.TemporaryDirectory() as temporary:

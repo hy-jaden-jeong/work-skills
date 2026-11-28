@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Export an absolute-time HTML/SVG composition; no imports from other skills."""
 import argparse
-from array import array
 import hashlib
 import json
 import math
@@ -11,7 +10,6 @@ import re
 import shutil
 import subprocess
 import sys
-import wave
 
 
 def finite_number(value):
@@ -26,18 +24,20 @@ def load_composition(path, allow_other_aspect=False):
     if not allow_other_aspect and width * 5 != height * 4:
         raise ValueError("width:height must be 4:5")
     duration = metadata.get("duration", 20)
-    if not finite_number(duration) or not 10 <= duration <= 30:
-        raise ValueError("duration must be 10~30 seconds")
+    if not finite_number(duration) or duration <= 0:
+        raise ValueError("duration must be a positive finite number of seconds")
     fps = metadata.get("fps", 30)
     if type(fps) is not int or not 10 <= fps <= 60:
         raise ValueError("fps must be an integer from 10 to 60 (default 30)")
+    if math.floor(duration * fps + 0.5) < 1:
+        raise ValueError("duration and fps must produce at least one frame")
     if metadata.get("version") != 1:
         raise ValueError("version must be 1")
     scene = metadata.get("scene", "scene.html")
     scene_path = local_asset(path.parent, scene)
     if not scene_path.is_file():
         raise ValueError(f"scene file is missing: {scene}")
-    representative = metadata.get("representativeTime", duration - 2)
+    representative = metadata.get("representativeTime", max(0, duration - 2))
     if not finite_number(representative) or not 0 <= representative < duration:
         raise ValueError("representativeTime must be inside duration")
     keyframes = metadata.get("keyframes", [])
@@ -46,20 +46,13 @@ def load_composition(path, allow_other_aspect=False):
     for key in keyframes:
         if not finite_number(key.get("time")) or not 0 <= key["time"] < duration:
             raise ValueError("keyframe time must be inside duration")
-    audio = metadata.get("audio", {})
-    for event in audio.get("events", []):
-        if not finite_number(event.get("time")) or not finite_number(event.get("duration")) or not 0 <= event["time"] < duration or not 0 < event["duration"] <= 2:
-            raise ValueError("audio event must have a valid time and duration")
-        if not finite_number(event.get("frequency")) or not finite_number(event.get("gain")) or not 20 <= event["frequency"] <= 20000 or not 0 <= event["gain"] <= 0.5:
-            raise ValueError("audio event frequency/gain is invalid")
-    bed = audio.get("bed", {})
-    if not finite_number(bed.get("gain", 0)) or not 0 <= bed.get("gain", 0) <= 0.1 or any(not finite_number(value) or not 20 <= value <= 20000 for value in bed.get("frequencies", [])):
-        raise ValueError("audio bed frequency/gain is invalid")
+    # Legacy audio settings never enable sound or survive source export.
+    metadata.pop("audio", None)
     for asset in metadata.get("assets", []):
         if not local_asset(path.parent, asset).is_file():
             raise ValueError(f"asset is missing: {asset}")
     metadata.update(width=width, height=height, duration=duration, fps=fps, scene=scene,
-                    representativeTime=representative, keyframes=keyframes, audio=audio,
+                    representativeTime=representative, keyframes=keyframes,
                     exportOptions={"allowOtherAspect": bool(allow_other_aspect)})
     return metadata
 
@@ -84,53 +77,14 @@ def executable(name, environment):
     return value
 
 
-def synth_audio(metadata, destination):
-    """Quiet harmonic bed and short tone effects, with start/end envelopes."""
-    rate = 48000
-    count = round(metadata["duration"] * rate)
-    samples = array("f", [0.0]) * count
-    bed = metadata["audio"].get("bed", {})
-    frequencies = bed.get("frequencies", [])
-    gain = bed.get("gain", 0)
-    if frequencies and gain:
-        for i in range(count):
-            t = i / rate
-            envelope = min(1, t / 0.6, (metadata["duration"] - t) / 0.8)
-            samples[i] = envelope * gain * sum(math.sin(math.tau * frequency * t) for frequency in frequencies) / len(frequencies)
-    for event in metadata["audio"].get("events", []):
-        start = round(event["time"] * rate)
-        length = min(round(event["duration"] * rate), count - start)
-        for j in range(length):
-            t = j / rate
-            envelope = min(1, t / 0.008, (length - j - 1) / (rate * 0.025))
-            samples[start + j] += event["gain"] * max(0, envelope) * math.exp(-3 * t / event["duration"]) * math.sin(math.tau * event["frequency"] * t)
-    # Enforce gentle global fades even when an effect is near an endpoint.
-    for i in range(min(rate // 10, count)):
-        samples[i] *= i / (rate // 10)
-        samples[-i - 1] *= i / (rate // 10)
-    peak = max(abs(value) for value in samples)
-    if peak > 0.8:
-        raise ValueError(f"audio mix peak {peak:.3f} exceeds the safe mix level")
-    pcm = array("h", (round(value * 32767) for value in samples))
-    if sys.byteorder != "little":
-        pcm.byteswap()
-    with wave.open(str(destination), "wb") as output:
-        output.setnchannels(1); output.setsampwidth(2); output.setframerate(rate)
-        output.writeframes(pcm.tobytes())
-    return {"sourcePeak": peak, "sourceRms": math.sqrt(sum(value * value for value in samples) / count),
-            "sampleRate": rate, "channels": 1, "sourceDuration": count / rate,
-            "clippedSamples": 0, "endpointSamples": [float(samples[0]), float(samples[-1])],
-            "events": metadata["audio"].get("events", [])}
-
-
 def review_images(output, metadata, capture):
     from PIL import Image, ImageChops, ImageDraw, ImageFont
-    candidates = [os.environ.get("MOTION_FONT_PATH"), "/System/Library/Fonts/AppleSDGothicNeo.ttc",
-                  "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"]
+    candidates = [os.environ.get("MOTION_FONT_PATH"), "/System/Library/Fonts/Supplemental/Arial.ttf",
+                  "/Library/Fonts/Arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                  "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+                  str(Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/arial.ttf")]
     font_path = next((p for p in candidates if p and Path(p).is_file()), None)
-    if not font_path:
-        raise RuntimeError("A local Korean font is required for review labels. Set MOTION_FONT_PATH.")
-    font = ImageFont.truetype(font_path, 24)
+    font = ImageFont.truetype(font_path, 24) if font_path else ImageFont.load_default(size=24)
     def caption_lines(text):
         lines, current = [], ""
         for character in text:
@@ -166,7 +120,7 @@ def review_images(output, metadata, capture):
             comparison.update(changedPixels=changed, maxChannelDifference=max(max(pixel) for pixel in pixels),
                               matchingPixelRatio=1 - changed / (metadata["width"] * metadata["height"]),
                               differenceBounds=difference.getbbox())
-    capture["fontCondition"] = "Install Apple SD Gothic Neo or Noto Sans CJK KR; OS fonts are not redistributed."
+    capture["fontCondition"] = "Use a readable local font such as Arial or DejaVu Sans. Non-Latin text needs matching glyph coverage; OS fonts are not redistributed."
 
 
 def export_source(metadata_path, metadata, output):
@@ -176,17 +130,19 @@ def export_source(metadata_path, metadata, output):
         destination = source / name
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(local_asset(metadata_path.parent, name), destination)
-    (source / "composition.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n")
+    source_metadata = dict(metadata)
+    source_metadata.pop("audio", None)
+    (source / "composition.json").write_text(json.dumps(source_metadata, ensure_ascii=False, indent=2) + "\n")
     scripts = source / "scripts"
     scripts.mkdir(exist_ok=True)
-    for name in ["render_motion.py", "capture.cjs"]:
+    for name in ["render_motion.py", "capture.cjs", "audit_motion.py"]:
         shutil.copy2(Path(__file__).resolve().parent / name, scripts / name)
     skill = Path(__file__).resolve().parent.parent
     for name in ["requirements.txt", "package.json", "package-lock.json"]:
         if (skill / name).is_file():
             shutil.copy2(skill / name, source / name)
     aspect_flag = " --allow-other-aspect" if metadata.get("exportOptions", {}).get("allowOtherAspect") else ""
-    (source / "README.md").write_text("# 재생성 원본\n\nPython 3, Node.js, Chrome과 로컬 한글 폰트(Apple SD Gothic Neo 또는 Noto Sans CJK KR)가 필요하다. OS font는 포함하지 않는다.\n\n이 폴더에서 다음을 실행한다.\n\n```sh\npython3 -m venv .venv\n.venv/bin/python -m pip install -r requirements.txt\nnpm install\n.venv/bin/python scripts/render_motion.py composition.json --output ../regenerated" + aspect_flag + "\n```\n\nscene 이외에 CSS·이미지·script·font 파일을 쓰면 composition.json의 assets에 상대경로로 모두 등록한다. 등록되지 않거나 로드하지 못한 로컬 자산은 export가 실패한다. data URI와 설치된 OS font는 파일 등록이 필요 없다. OS font는 원본에 복사하지 않는다.\n\n명시 경로가 필요하면 NODE_BINARY, NODE_PATH, FFMPEG_PATH, CHROME_PATH, MOTION_FONT_PATH 환경 변수를 쓴다. 원래 worktree 경로에 의존하지 않는다.\n", encoding="utf-8")
+    (source / "README.md").write_text("# 재생성 원본\n\n이 exporter는 오디오 stream 없는 무음 MP4를 만든다. 이전 audio 설정은 사용하거나 원본에 보존하지 않는다. Python 3, Node.js, Chrome과 읽기 쉬운 로컬 폰트(예: Arial 또는 DejaVu Sans)가 필요하다. 영어 이외 문자에는 해당 문자를 지원하는 폰트를 지정한다. OS font는 포함하지 않는다.\n\n이 폴더에서 다음을 실행한다.\n\n```sh\npython3 -m venv .venv\n.venv/bin/python -m pip install -r requirements.txt\nnpm install\n.venv/bin/python scripts/render_motion.py composition.json --output ../regenerated" + aspect_flag + "\n```\n\n생성된 PNG의 정지 후보와 프레임 간 변화량은 `.venv/bin/python scripts/audit_motion.py ../regenerated/frames --fps " + str(metadata["fps"]) + " --output ../regenerated/pace-audit.json`으로 확인한다. 이 도구는 후보를 보고하며 자동 컷이나 합격 판정을 하지 않는다.\n\nscene 이외에 CSS·이미지·script·font 파일을 쓰면 composition.json의 assets에 상대경로로 모두 등록한다. 등록되지 않거나 로드하지 못한 로컬 자산은 export가 실패한다. data URI와 설치된 OS font는 파일 등록이 필요 없다. OS font는 원본에 복사하지 않는다.\n\n명시 경로가 필요하면 NODE_BINARY, NODE_PATH, FFMPEG_PATH, CHROME_PATH, MOTION_FONT_PATH 환경 변수를 쓴다. 원래 worktree 경로에 의존하지 않는다.\n", encoding="utf-8")
 
 
 def render(metadata_path, metadata, output):
@@ -196,32 +152,33 @@ def render(metadata_path, metadata, output):
     subprocess.run([node, str(Path(__file__).with_name("capture.cjs")), str(metadata_path), str(output)], check=True)
     capture = json.loads((output / "capture-validation.json").read_text())
     review_images(output, metadata, capture)
-    audio = synth_audio(metadata, output / "audio.wav")
     video_path = output / "video.mp4"
     command = [ffmpeg, "-y", "-v", "error", "-framerate", str(metadata["fps"]), "-i", str(output / "frames/%04d.png"),
-               "-i", str(output / "audio.wav"), "-t", str(metadata["duration"]), "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-               "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(video_path)]
+               "-t", str(metadata["duration"]), "-map", "0:v:0", "-an", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+               "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(video_path)]
     subprocess.run(command, check=True)
     probe = subprocess.run([ffmpeg, "-hide_banner", "-i", str(video_path)], capture_output=True, text=True).stderr
     video_line = next((line for line in probe.splitlines() if "Video:" in line), "")
-    audio_line = next((line for line in probe.splitlines() if "Audio:" in line), "")
+    audio_lines = [line for line in probe.splitlines() if "Audio:" in line]
     dimensions = re.search(r"\b(\d{2,5})x(\d{2,5})\b", video_line)
     fps = re.search(r"([\d.]+) fps", video_line)
     duration = re.search(r"Duration: (\d+):(\d+):([\d.]+)", probe)
-    if not ("Video: h264" in video_line and "yuv420p" in video_line and "Audio: aac" in audio_line and dimensions and fps and duration):
-        raise RuntimeError(f"Expected H.264 yuv420p and AAC streams were not found: {probe}")
+    if not ("Video: h264" in video_line and "yuv420p" in video_line and dimensions and fps and duration) or audio_lines:
+        raise RuntimeError(f"Expected video-only H.264 yuv420p stream was not found: {probe}")
     actual_dimensions = list(map(int, dimensions.groups()))
     actual_duration = int(duration[1]) * 3600 + int(duration[2]) * 60 + float(duration[3])
     if actual_dimensions != [metadata["width"], metadata["height"]] or float(fps[1]) != metadata["fps"] or abs(actual_duration - metadata["duration"]) > 0.1:
         raise RuntimeError("Encoded video dimensions, fps, or duration differ from the composition")
-    decoded = subprocess.run([ffmpeg, "-v", "error", "-i", str(video_path), "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-"], capture_output=True, text=True)
+    decoded = subprocess.run([ffmpeg, "-v", "error", "-i", str(video_path), "-map", "0:v:0", "-f", "null", "-"], capture_output=True, text=True)
     if decoded.returncode or decoded.stderr.strip():
         raise RuntimeError(f"Full MP4 decode failed: {decoded.stderr}")
-    audio["codec"] = "aac"
+    stale_audio = output / "audio.wav"
+    if stale_audio.is_file() or stale_audio.is_symlink():
+        stale_audio.unlink()  # Only the previous exporter-owned artifact.
     validation = {"duration": actual_duration, "bytes": video_path.stat().st_size, "fullDecodePassed": True,
                   "exportOptions": metadata["exportOptions"],
                   "video": {"codec": "h264", "pixelFormat": "yuv420p", "dimensions": actual_dimensions, "fps": float(fps[1])},
-                  "audio": audio, "capture": capture,
+                  "silent": True, "audioStreamCount": len(audio_lines), "capture": capture,
                   "representativeTime": metadata["representativeTime"],
                   "representativeSha256": hashlib.sha256((output / "representative.png").read_bytes()).hexdigest(),
                   "encodeCommand": command, "ffmpegVersion": subprocess.run([ffmpeg, "-version"], capture_output=True, text=True).stdout.splitlines()[0]}
