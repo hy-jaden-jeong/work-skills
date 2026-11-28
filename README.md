@@ -13,7 +13,7 @@
 | [draw-diagram](skills/draw-diagram/SKILL.md) | 대화 속 개념 설명과 본문 삽화를 그림 자체로 전달하는 실제 그림 크기 PNG로 만든다. 계층·1:N·가지 관계는 tree를 우선하고 질문에 맞는 모양을 골라 필요한 만큼 나누거나 확대한다. 요청·납품 형식에 필요하면 16:9 단독 장표로 만든다 |
 | [motion-graphics](skills/motion-graphics/SKILL.md) | 대상의 이동·계산·변형으로 기술 원리·업무·개념 차이를 설명하는 LinkedIn용 10~30초 영상을 만든다. 4:5 MP4에 짧은 효과음·배경음을 넣고, 무음에서도 이해되는지 확인한다 |
 | [notion-writing-style](skills/notion-writing-style/SKILL.md) | Notion 문서의 구성·서식·네이티브 멘션을 정리하고 본문 삽화에 `draw-diagram`을 활용한다 |
-| [teach-me](skills/teach-me/SKILL.md) | 학습 목적과 현재 이해를 객관식으로 파악하고, 문서·레포·시스템과 일반 개념의 전체 설명·세부 확대·재설명을 다이어그램 자체로 전달한다. 필요한 만큼 그림을 나누고 실제 퀴즈 답으로 이해를 확인한다 |
+| [teach-me](skills/teach-me/SKILL.md) | 제품 사용법·현재 UI 온보딩은 사용자가 한 동작씩 따라 하고 실제 결과를 확인하는 실습으로 진행한다. 개념·원리·전체 흐름은 객관식 진단·다이어그램·퀴즈로 이해를 확인한다 |
 | [grill-me](skills/grill-me/SKILL.md) | 계획·결정·아이디어를 끝까지 인터뷰한다. 결정별 차이를 그림과 글로 설명한 뒤 객관식으로 묻고, 결정 목록을 확정받는다. 코드가 없는 주제는 파일 없이 끝내고, 만들 일이면 문제 맞추기 → 설계 → 인터뷰 → 확정으로 spec 한 파일을 확정한다 |
 | [build-to-spec](skills/build-to-spec/SKILL.md) | 확정된 spec대로 만들고 증명한다. slice 나누기 → 구현(실패하는 test 먼저, 기존 출력은 golden master로 지킴) → 세 방향 검증. spec 파일이 진행 상태라 끊긴 구현을 이어 간다 |
 
