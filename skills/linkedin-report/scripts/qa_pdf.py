@@ -110,7 +110,7 @@ def main():
         target = pages_dir / f'page-{index:02d}.png'
         if file != target:
             file.rename(target)
-    rendered = sorted(pages_dir.glob('page-*.png'))
+    rendered = sorted(pages_dir.glob('page-*.png'), key=lambda p: int(p.stem.split('-')[-1]))
     cols, thumb_w, pad, label_h = 4, 280, 18, 28
     thumb_h = round(thumb_w * float(reader.pages[0].mediabox.height) / float(reader.pages[0].mediabox.width))
     contact = Image.new('RGB', (cols * (thumb_w + pad) + pad, math.ceil(len(rendered) / cols) * (thumb_h + label_h + pad) + pad), '#d6d6d6')
