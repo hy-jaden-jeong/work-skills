@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "editorial-default",
+  "colors": {
+    "background": "#141618",
+    "band": "#24282C",
+    "text": "#F0ECE3",
+    "primary": "#8CA0B8",
+    "secondary": "#7DA89A",
+    "actionResult": "#E4B75B",
+    "changeMismatch": "#D98282"
+  },
+  "neutralColors": {"borderEdge": "#686765", "mutedText": "#A3A19C"},
+  "neutralDerivation": "background와 text의 RGB channel을 각각 38%, 65% text 비율로 섞은 중립색이다.",
+  "reportRoles": {
+    "coverAndSection": "background와 band, text",
+    "bodyCanvasAndText": "text canvas에 background 글자",
+    "chartSeries": ["primary", "secondary"],
+    "selectiveAccent": ["actionResult", "changeMismatch"],
+    "lightCanvasLabels": "background: 연한 accent는 작은 글자로 쓰지 않는다.",
+    "referenceOverride": "사용자가 template나 palette를 지정하면 그 요청을 따른다."
+  }
+}
