@@ -1,0 +1,33 @@
+/* Download a licensed Korean font into source/fonts; see card-guide.md. */
+@font-face { font-family: 'Card Sans'; src: url('fonts/card-sans.ttf') format('truetype'); font-weight: 100 900; font-style: normal; }
+:root { --charcoal:#141618; --band:#24282C; --cream:#F0ECE3; --blue:#8CA0B8; --sage:#7DA89A; --amber:#E4B75B; --coral:#D98282; --border:#686765; --muted:#A3A19C; --safe:72px; }
+* { box-sizing:border-box; }
+html { background:var(--band); }
+body { margin:0; font-family:'Card Sans',sans-serif; color:var(--charcoal); word-break:keep-all; overflow-wrap:break-word; }
+.card { position:relative; width:1080px; height:1350px; margin:32px auto; padding:var(--safe); background:var(--cream); display:flex; flex-direction:column; gap:40px; }
+.card.dark { background:var(--charcoal); color:var(--cream); }
+h1,h2,p,figure { margin:0; }
+.eyebrow { font-size:30px; line-height:1.35; font-weight:600; }
+h1,h2 { font-size:72px; line-height:1.2; font-weight:800; letter-spacing:-.035em; }
+.condition { font-size:36px; line-height:1.45; }
+.chart { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:30px; }
+.chart-label { font-size:44px; line-height:1.35; font-weight:700; }
+.big-value { font-size:160px; line-height:1.05; font-weight:800; letter-spacing:-.045em; color:var(--sage); }
+.dark .big-value { color:var(--sage); }
+.stack { display:flex; width:100%; height:112px; }
+.stack > span { display:flex; align-items:center; justify-content:center; font-size:44px; font-weight:700; color:var(--charcoal); }
+.blue { background:var(--blue); }
+.sage { background:var(--sage); }
+.value-row { display:flex; align-items:baseline; justify-content:space-between; gap:24px; font-size:44px; font-weight:700; }
+.track { height:76px; width:100%; background:rgb(20 22 24 / 10%); }
+.dark .track { background:var(--band); }
+.bar { height:100%; }
+.axis { display:flex; justify-content:space-between; font-size:36px; }
+.bar-group { display:flex; flex-direction:column; gap:16px; }
+.flow { display:flex; flex-direction:column; align-items:stretch; gap:20px; }
+.step { border-left:10px solid var(--blue); padding:24px 32px; background:var(--band); font-size:48px; line-height:1.3; font-weight:700; }
+.step:last-child { border-color:var(--sage); }
+.arrow { font-size:52px; line-height:1; margin-left:40px; color:var(--sage); }
+.source { margin-top:auto; padding-top:20px; border-top:2px solid var(--border); font-size:28px; line-height:1.4; display:flex; justify-content:space-between; gap:24px; }
+.source a { color:inherit; }
+.dark .source { color:var(--cream); }

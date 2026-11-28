@@ -1,8 +1,0 @@
-__pycache__/
-*.py[cod]
-.venv/
-node_modules/
-assets/starter/fonts/
-*.pdf
-*.export.json
-qa/
